@@ -5,7 +5,7 @@ const defaults = {
   ai: {
     model: 'gpt-4o-mini',
     temperature: 0.7,
-    maxTokens: 1024,
+    maxTokens: 4096,
     topP: 1,
     stream: false,
     systemInstruction: 'You are a helpful WhatsApp assistant.',
@@ -24,8 +24,9 @@ const defaults = {
     maxMemoriesPerUser: 50,
   },
   tools: {
-    enabled: false,
-    allow: [],
+    enabled: true,
+    allow: ['write_file'],
+    maxRounds: 6,
   },
 };
 

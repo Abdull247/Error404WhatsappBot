@@ -3,6 +3,7 @@ import { generateReply } from '../ai/agent.js';
 import { rememberUser } from '../memory/store.js';
 import { logger } from '../utils/logger.js';
 import { extractText, isGroupJid, isStatusJid, shouldIgnore, unwrapMessageContent } from './filters.js';
+import { sendArtifacts } from './send.js';
 
 const inflight = new Set();
 
@@ -75,8 +76,15 @@ export async function handleIncomingMessage(sock, message) {
     });
 
     const reply = await generateReply({ jid, text, pushName });
-    await sock.sendMessage(jid, { text: reply }, { quoted: message });
-    logger.info({ jid }, 'sent WhatsApp reply');
+    const artifacts = reply.artifacts || [];
+    const replyText = typeof reply === 'string' ? reply : reply.text;
+
+    if (artifacts.length) {
+      await sendArtifacts(sock, jid, artifacts, message);
+    }
+
+    await sock.sendMessage(jid, { text: replyText }, { quoted: message });
+    logger.info({ jid, files: artifacts.length }, 'sent WhatsApp reply');
   } catch (error) {
     logger.error({ err: error, jid }, 'failed to generate or send reply');
     try {

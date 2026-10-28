@@ -53,8 +53,13 @@ export const env = {
   WHATSAPP_USE_PAIRING_CODE: optionalBool('WHATSAPP_USE_PAIRING_CODE', Boolean(phoneNumber)),
   LOG_LEVEL: optional('LOG_LEVEL', 'info'),
   CONFIG_PATH: path.resolve(rootDir, optional('CONFIG_PATH', './config.json')),
+  TOOLS_OUTPUT_DIR: path.resolve(rootDir, optional('TOOLS_OUTPUT_DIR', './generated')),
 };
 
 export function ensureSessionDir() {
   fs.mkdirSync(env.WHATSAPP_SESSION_DIR, { recursive: true });
+}
+
+export function ensureToolsOutputDir() {
+  fs.mkdirSync(env.TOOLS_OUTPUT_DIR, { recursive: true });
 }

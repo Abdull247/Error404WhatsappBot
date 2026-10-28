@@ -22,7 +22,8 @@ src/
 - `config.json` holds model name, system instruction, bot behavior, and memory settings.
 - `.env` holds secrets and connection URLs.
 - `migrations/` holds SQL files applied on startup.
-- `src/tools/` is ready for tool calling later.
+- `src/tools/catalog/` holds one folder per tool (`config.json` + `handler.js`).
+- `write_file` can create `.html`, `.css`, `.js`, `.txt`, `.json`, and `.md` files, send them on WhatsApp, then send a short recap.
 
 ## Setup
 
@@ -59,6 +60,12 @@ WHATSAPP_PHONE_NUMBER=2348012345678
 ```
 
 Use digits only, including country code. Then start the bot and enter the printed code on your phone under Linked Devices > Link with phone number.
+
+## Tools
+
+Tool calling is enabled in `config.json`. Each tool lives in `src/tools/catalog/<tool-name>/`.
+
+`write_file` creates files under `generated/` and sends them as WhatsApp documents. Example: ask for a portfolio and the bot can create `index.html`, `styles.css`, and `script.js`, send those files, then reply with a short "I've finished" recap.
 
 ## Scripts
 

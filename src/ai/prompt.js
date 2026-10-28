@@ -1,6 +1,8 @@
 import { appConfig } from '../config/load-config.js';
 import { formatMemories } from '../memory/store.js';
 
+const TOOL_INSTRUCTION = `When the user asks you to generate code, a website, a portfolio, HTML, CSS, JavaScript, notes, or any downloadable text file, you MUST use the write_file tool. Create a separate file for each part, for example index.html, styles.css, and script.js. Do not dump large source files as chat text. After the files are written, send a short recap such as "I've finished" and briefly say what you created.`;
+
 export function buildMessages({ userText, history, memories, pushName }) {
   const messages = [
     {
@@ -8,6 +10,13 @@ export function buildMessages({ userText, history, memories, pushName }) {
       content: appConfig.ai.systemInstruction,
     },
   ];
+
+  if (appConfig.tools.enabled) {
+    messages.push({
+      role: 'system',
+      content: TOOL_INSTRUCTION,
+    });
+  }
 
   const memoryBlock = formatMemories(memories);
   if (memoryBlock) {

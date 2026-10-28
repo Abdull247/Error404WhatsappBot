@@ -114,6 +114,9 @@
 # WhatsApp session
 **/session/
 
+# Generated tool files
+**/generated/
+
 # Temporary files
 *.tmp
 *.temp
