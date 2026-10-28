@@ -5,6 +5,14 @@
     ".json": {
       "enabled": true,
       "run": "vscode-json-language-server --stdio"
+    },
+    ".md": {
+      "enabled": true,
+      "run": "marksman server"
+    },
+    ".sql": {
+      "enabled": true,
+      "run": "sqls"
     }
   }
 }
