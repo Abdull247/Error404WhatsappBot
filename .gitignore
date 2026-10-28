@@ -111,6 +111,9 @@
 *.pem
 *.key
 
+# WhatsApp session
+**/session/
+
 # Temporary files
 *.tmp
 *.temp
