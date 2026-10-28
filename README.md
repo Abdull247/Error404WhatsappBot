@@ -39,7 +39,26 @@ npm install
 npm start
 ```
 
-Scan the QR code in the terminal to link WhatsApp.
+Link WhatsApp with either QR or pairing code.
+
+QR (default):
+
+```bash
+npm start
+```
+
+Scan the QR printed in the terminal.
+
+Pairing code:
+
+Set these in `.env`:
+
+```bash
+WHATSAPP_USE_PAIRING_CODE=true
+WHATSAPP_PHONE_NUMBER=2348012345678
+```
+
+Use digits only, including country code. Then start the bot and enter the printed code on your phone under Linked Devices > Link with phone number.
 
 ## Scripts
 

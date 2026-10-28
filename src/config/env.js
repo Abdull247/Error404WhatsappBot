@@ -35,6 +35,12 @@ function optionalInt(name, fallback) {
   return parsed;
 }
 
+function normalizePhone(value) {
+  return String(value || '').replace(/\D/g, '');
+}
+
+const phoneNumber = normalizePhone(optional('WHATSAPP_PHONE_NUMBER', ''));
+
 export const env = {
   ROOT_DIR: rootDir,
   AI_BASE_URL: required('AI_BASE_URL').replace(/\/+$/, ''),
@@ -43,6 +49,8 @@ export const env = {
   DATABASE_URL: required('DATABASE_URL'),
   WHATSAPP_SESSION_DIR: path.resolve(rootDir, optional('WHATSAPP_SESSION_DIR', './session')),
   WHATSAPP_PRINT_QR: optionalBool('WHATSAPP_PRINT_QR', true),
+  WHATSAPP_PHONE_NUMBER: phoneNumber,
+  WHATSAPP_USE_PAIRING_CODE: optionalBool('WHATSAPP_USE_PAIRING_CODE', Boolean(phoneNumber)),
   LOG_LEVEL: optional('LOG_LEVEL', 'info'),
   CONFIG_PATH: path.resolve(rootDir, optional('CONFIG_PATH', './config.json')),
 };

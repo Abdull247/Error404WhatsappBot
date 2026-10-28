@@ -7,6 +7,7 @@ const defaults = {
     temperature: 0.7,
     maxTokens: 1024,
     topP: 1,
+    stream: false,
     systemInstruction: 'You are a helpful WhatsApp assistant.',
   },
   bot: {

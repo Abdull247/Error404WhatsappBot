@@ -18,6 +18,7 @@ export async function createChatCompletion({ messages, tools }) {
     temperature: appConfig.ai.temperature,
     max_tokens: appConfig.ai.maxTokens,
     top_p: appConfig.ai.topP,
+    stream: Boolean(appConfig.ai.stream),
   };
 
   if (appConfig.tools.enabled && tools?.length) {
@@ -29,6 +30,7 @@ export async function createChatCompletion({ messages, tools }) {
   const timeout = setTimeout(() => controller.abort(), env.AI_TIMEOUT_MS);
 
   try {
+    logger.info({ model: payload.model, stream: payload.stream }, 'calling AI chat completions');
     const response = await fetch(`${env.AI_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {

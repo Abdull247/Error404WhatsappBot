@@ -1,6 +1,7 @@
 import { appConfig } from '../config/load-config.js';
 import { loadContext, saveTurn } from '../memory/store.js';
 import { loadTools } from '../tools/index.js';
+import { logger } from '../utils/logger.js';
 import { createChatCompletion } from './client.js';
 import { buildMessages } from './prompt.js';
 
@@ -24,7 +25,17 @@ function extractText(completion) {
 }
 
 export async function generateReply({ jid, text, pushName }) {
-  const { history, memories } = await loadContext(jid);
+  let history = [];
+  let memories = [];
+
+  try {
+    const context = await loadContext(jid);
+    history = context.history;
+    memories = context.memories;
+  } catch (error) {
+    logger.warn({ err: error, jid }, 'failed to load memory, continuing without it');
+  }
+
   const messages = buildMessages({
     userText: text,
     history,
@@ -36,10 +47,14 @@ export async function generateReply({ jid, text, pushName }) {
   const completion = await createChatCompletion({ messages, tools });
   const reply = extractText(completion) || 'I could not generate a reply just now.';
 
-  await saveTurn(jid, 'user', text, { pushName });
-  await saveTurn(jid, 'assistant', reply, {
+  saveTurn(jid, 'user', text, { pushName }).catch((error) => {
+    logger.warn({ err: error, jid }, 'failed to save user turn');
+  });
+  saveTurn(jid, 'assistant', reply, {
     model: appConfig.ai.model,
     finishReason: completion?.choices?.[0]?.finish_reason ?? null,
+  }).catch((error) => {
+    logger.warn({ err: error, jid }, 'failed to save assistant turn');
   });
 
   return reply;
