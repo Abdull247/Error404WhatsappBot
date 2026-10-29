@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "definition": {
+    "type": "function",
+    "function": {
+      "name": "react",
+      "description": "React to the current WhatsApp message with one emoji. Use this in groups when the message is funny, hype, grateful, cute, shocked, or otherwise reaction-worthy. Call it before you answer. Then still send a normal text reply. Do not mention the reaction in your reply.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "emoji": {
+            "type": "string",
+            "description": "A single emoji. Examples: laughing face, fire, red heart, thumbs up, folded hands, surprised face, thinking face, party, waving hand, hundred points."
+          }
+        },
+        "required": ["emoji"]
+      }
+    }
+  }
+}

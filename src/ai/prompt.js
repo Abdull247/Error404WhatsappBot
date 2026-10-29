@@ -21,7 +21,9 @@ Do not dump large program output as chat. Summarize stdout/stderr and mention fi
 
 When the owner asks which chats, groups, or DMs the bot has, you MUST call list_chats. Filter with query or type=group/dm when they ask for a subset. Then answer with names, types, last message, and counts. Do not invent chats that were not returned.
 
-When the owner asks to summarize a chat, recap a group, or extract facts, decisions, people, or action items from a conversation, first list_chats if you do not already have the exact name or jid, then call summarize_chat with that chat. Prefer the returned summary, facts, people, decisions, and actionItems. Quote only from the tool result. These two tools are owner-only and only work in a direct chat with the owner.`;
+When the owner asks to summarize a chat, recap a group, or extract facts, decisions, people, or action items from a conversation, first list_chats if you do not already have the exact name or jid, then call summarize_chat with that chat. Prefer the returned summary, facts, people, decisions, and actionItems. Quote only from the tool result. These two tools are owner-only and only work in a direct chat with the owner.
+
+When a group message is funny, hype, grateful, cute, shocked, or otherwise reaction-worthy, call the react tool with one emoji first, then still send a normal text reply. Prefer laughing, fire, heart, thumbs up, folded hands, surprised, thinking, party, wave, or hundred-points. Do not react to every message. Never mention the reaction in your reply.`;
 
 export function buildMessages({ userText, history, memories, pushName, systemInstruction, environment }) {
   const messages = [

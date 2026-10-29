@@ -5,7 +5,7 @@ import { findPersonality, formatPersonalityPrompt, getDefaultPersonality } from 
 import { executeToolCall, loadTools } from '../tools/index.js';
 import { isSlowTool } from '../tools/registry.js';
 import { logger } from '../utils/logger.js';
-import { reactToMessage } from '../whatsapp/react.js';
+import { BUSY_REACTIONS, reactToMessage } from '../whatsapp/react.js';
 import { formatEnvironmentPrompt } from '../whatsapp/group.js';
 import { createChatCompletion } from './client.js';
 import { isGreeting } from './greetings.js';
@@ -42,7 +42,15 @@ function defaultRecap(artifacts) {
   return `I've finished. I created ${names.join(', ')} and sent them to you.`;
 }
 
-export async function generateReply({ jid, text, pushName, sock, message, environment = null }) {
+export async function generateReply({
+  jid,
+  text,
+  pushName,
+  sock,
+  message,
+  environment = null,
+  existingReaction = '',
+}) {
   let history = [];
   let memories = [];
 
@@ -95,7 +103,20 @@ export async function generateReply({ jid, text, pushName, sock, message, enviro
   const maxRounds = appConfig.tools.maxRounds || 6;
   let lastMessage = null;
   let reactedBusy = false;
-  const toolContext = { jid, pushName, text, sock, message, environment };
+  let expressiveReaction = existingReaction || '';
+  const toolContext = {
+    jid,
+    pushName,
+    text,
+    sock,
+    message,
+    environment,
+    markReaction(emoji) {
+      if (emoji && !BUSY_REACTIONS.has(emoji)) {
+        expressiveReaction = emoji;
+      }
+    },
+  };
 
   try {
     for (let round = 0; round < maxRounds; round += 1) {
@@ -121,7 +142,7 @@ export async function generateReply({ jid, text, pushName, sock, message, enviro
       if (!toolCalls.length) break;
 
       for (const toolCall of toolCalls) {
-        if (!reactedBusy && isSlowTool(toolCall?.function?.name)) {
+        if (!reactedBusy && !expressiveReaction && isSlowTool(toolCall?.function?.name)) {
           await reactToMessage(sock, message, '\u231B');
           reactedBusy = true;
         }
@@ -133,7 +154,7 @@ export async function generateReply({ jid, text, pushName, sock, message, enviro
       }
     }
   } finally {
-    if (reactedBusy) {
+    if (reactedBusy && !expressiveReaction) {
       await reactToMessage(sock, message, '\u2705');
     }
   }
@@ -153,5 +174,5 @@ export async function generateReply({ jid, text, pushName, sock, message, enviro
     logger.warn({ err: error, jid }, 'failed to save assistant turn');
   });
 
-  return { text: reply, artifacts };
+  return { text: reply, artifacts, reaction: expressiveReaction || null };
 }

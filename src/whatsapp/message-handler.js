@@ -13,6 +13,7 @@ import {
 } from './group.js';
 import { logIncomingMessage } from './log-message.js';
 import { markBotReply, wasRecentBotReply } from './outbound.js';
+import { pickGroupReaction, reactToMessage } from './react.js';
 import { sendArtifacts } from './send.js';
 
 const inflight = new Set();
@@ -106,6 +107,16 @@ export async function handleIncomingMessage(sock, message) {
       { jid, pushName, group, mentioned, replyToBot, trigger, text },
       'incoming WhatsApp message',
     );
+
+    const prefix = appConfig.bot.commandPrefix || '.';
+    let existingReaction = '';
+    if (group && appConfig.bot.reactInGroups !== false && !promptText.startsWith(prefix)) {
+      const quickReaction = pickGroupReaction(promptText);
+      if (quickReaction && await reactToMessage(sock, message, quickReaction)) {
+        existingReaction = quickReaction;
+      }
+    }
+
     await showTyping(sock, jid);
 
     if (appConfig.bot.markMessagesRead) {
@@ -136,6 +147,7 @@ export async function handleIncomingMessage(sock, message) {
           sock,
           message,
           environment,
+          existingReaction,
         })
       : { text: commandReply, artifacts: [] };
     const artifacts = reply.artifacts || [];

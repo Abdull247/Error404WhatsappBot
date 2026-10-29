@@ -16,6 +16,8 @@ const defaults = {
     ignoreStatus: true,
     respondToMentionsInGroups: true,
     respondToRepliesInGroups: true,
+    reactInGroups: true,
+    reactInDms: false,
     typingIndicator: true,
     markMessagesRead: true,
     ownerNumbers: [],
@@ -30,7 +32,7 @@ const defaults = {
   },
   tools: {
     enabled: true,
-    allow: ['write_file', 'web_search', 'get_datetime', 'sandbox', 'list_chats', 'summarize_chat'],
+    allow: ['write_file', 'web_search', 'get_datetime', 'sandbox', 'list_chats', 'summarize_chat', 'react'],
     maxRounds: 10,
   },
 };
