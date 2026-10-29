@@ -1,7 +1,7 @@
 import { upsertChat } from '../db/repositories/chats.js';
 import { addMessage } from '../db/repositories/conversations.js';
 import { logger } from '../utils/logger.js';
-import { extractText, isGroupJid } from './filters.js';
+import { extractText, isGroupJid, unwrapMessageContent } from './filters.js';
 import { loadGroupDetails } from './group.js';
 import { getCurrentSocket } from './socket.js';
 
@@ -56,7 +56,7 @@ export async function logIncomingMessage(sock, message, {
   const jid = message?.key?.remoteJid;
   if (!jid) return;
 
-  const body = text || extractText(message);
+  const body = text || extractText(message) || (unwrapMessageContent(message).imageMessage ? '[image]' : '');
   if (!body) return;
 
   const type = isGroupJid(jid) ? 'group' : 'dm';

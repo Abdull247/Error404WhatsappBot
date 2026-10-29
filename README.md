@@ -6,6 +6,7 @@ Node.js WhatsApp bot using Baileys, an OpenAI-compatible AI API, and Neon Postgr
 
 ```text
 config.json
+sandboxes.json
 custom-instructions.json
 .env.example
 migrations/
@@ -20,7 +21,8 @@ src/
   whatsapp/
 ```
 
-- `config.json` holds model name, system instruction, bot behavior, and memory settings.
+- `config.json` holds AI providers and models, the default model, system instruction, bot behavior, and memory settings.
+- `sandboxes.json` holds sandbox backends and which one is active (`default`). Only that sandbox's tools are exposed.
 - `custom-instructions.json` holds always-on identity and creator details injected into every system prompt.
 - In groups the bot stays quiet unless it is @mentioned or someone replies to one of its messages. Replies are quoted so the group can follow the thread. The AI is told it is in a group and gets the group name, description, and speaker.
 - `.env` holds secrets and connection URLs.
@@ -28,22 +30,21 @@ src/
 - `src/tools/catalog/` holds one folder per tool (`config.json` + `handler.js`).
 - `personalities/` holds one JSON file per AI personality.
 - `write_file` can create `.html`, `.css`, `.js`, `.txt`, `.json`, and `.md` files, send them on WhatsApp, then send a short recap.
-- `sandbox` runs code and commands in a temporary E2B Linux VM. One sandbox is reused per WhatsApp user until it is killed or times out.
-- `linux_machine` is an owner-only persistent InstaBox Linux computer (Debian, `/data` disk, optional desktop). Public and one-shot work still uses `sandbox`.
+- `sandbox` runs code and commands in a temporary E2B Linux VM. One sandbox is reused per WhatsApp chat until it is killed or times out.
+- `linux_machine` is a persistent InstaBox Linux computer (Debian, `/data` disk, optional desktop). It is available in DMs and groups. `sandboxes.json` picks which one is active.
 
 ## Setup
 
 Copy `.env.example` to `.env` and fill in:
 
-- `AI_BASE_URL`
-- `AI_API_KEY`
+- Provider env vars named in `config.json` (`AI_BASE_URL` / `AI_API_KEY` for the bundled OpenRouter provider)
 - `DATABASE_URL`
 - `LANGSEARCH_API_KEY`
-- `E2B_API_KEY`
-- `INSTABOX_API_KEY` (owner-only persistent Linux machine)
+- `E2B_API_KEY` (if `sandboxes.json` default is `sandbox`)
+- `INSTABOX_API_KEY` (if default is `linux_machine`)
 - `SCREENSHOTLAYER_API_KEY`
 
-Edit `config.json` for model, temperature, and system instruction.
+Edit `config.json` for providers, default model, temperature, and system instruction. Edit `sandboxes.json` to choose the active Linux backend.
 
 Group chat:
 
@@ -79,6 +80,39 @@ WHATSAPP_PHONE_NUMBER=2348012345678
 
 Use digits only, including country code. Then start the bot and enter the printed code on your phone under Linked Devices > Link with phone number.
 
+## AI providers
+
+`config.json` can list more than one OpenAI-compatible provider. Each provider has its own models array. `ai.defaultModel` picks which model to call. Env var names live on the provider (`baseUrl.env`, `apiKey.env`). Set `"required": false` on `apiKey` when the server needs no key.
+
+```json
+{
+  "ai": {
+    "defaultModel": "gpt-4o-mini",
+    "providers": [
+      {
+        "id": "openai",
+        "baseUrl": { "env": "OPENAI_BASE_URL", "required": true },
+        "apiKey": { "env": "OPENAI_API_KEY", "required": true },
+        "models": [
+          { "id": "gpt-4o-mini", "image_support": true },
+          { "id": "gpt-4o", "image_support": true }
+        ]
+      },
+      {
+        "id": "local",
+        "baseUrl": { "env": "LOCAL_AI_BASE_URL", "required": true },
+        "apiKey": { "env": "LOCAL_AI_API_KEY", "required": false },
+        "models": [
+          { "id": "llama3", "image_support": false }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Set `image_support` (also accepts `image_surport`) to `true` on a model so WhatsApp image attachments are downloaded and sent in the chat request as a vision `image_url` part.
+
 ## Tools
 
 Tool calling is enabled in `config.json`. Each tool lives in `src/tools/catalog/<tool-name>/`.
@@ -89,9 +123,11 @@ Tool calling is enabled in `config.json`. Each tool lives in `src/tools/catalog/
 
 `get_datetime` returns the user's local date and time. Simple greetings use `query=greeting` (timezone, date, local time, time of day). Use `query=full` for weekdays, week number, and other calendar details. The bot must not guess the time.
 
-`sandbox` uses the E2B code-interpreter SDK. Set `E2B_API_KEY` in `.env`. The model calls it with an `action` such as `run_code`, `run_command`, `files_write`, `install`, `get_url`, or `kill`. Long sandbox work reacts to the user message with an hourglass, then a check mark when finished. Charts and downloaded files are sent on WhatsApp. Use this for public users and one-shot throwaway runs.
+`sandbox` uses the E2B code-interpreter SDK. Set `E2B_API_KEY` in `.env`. The model calls it with an `action` such as `run_code`, `run_command`, `files_write`, `install`, `get_url`, or `kill`. Long sandbox work reacts to the user message with an hourglass, then a check mark when finished. Charts and downloaded files are sent on WhatsApp.
 
-`linux_machine` uses the InstaBox SDK (`@insforge/instabox-sdk`). Set `INSTABOX_API_KEY` and optionally `INSTABOX_API_URL` (default `https://api.instabox.sh`), `INSTABOX_TEMPLATE` (default `agent-browser`), and `INSTABOX_MACHINE_ID` to pin an existing box. Owner numbers only (`OWNER_NUMBERS`); everyone else keeps using `sandbox`. The machine is persistent: `/data/home` survives pause/stop, and the same box is reused across turns and bot restarts (it reconnects by listing your InstaBox machines). Actions include `run_command`, `run_code`, filesystem helpers, `get_url` (publish a port), `pause` / `resume` / `stop`, desktop control (`desktop_start`, `desktop_screenshot`, `desktop_stream`), and `snapshot`.
+`linux_machine` uses the InstaBox SDK (`@insforge/instabox-sdk`). Set `INSTABOX_API_KEY` and optionally `INSTABOX_API_URL` (default `https://api.instabox.sh`), `INSTABOX_TEMPLATE` (default `agent-browser`), and `INSTABOX_MACHINE_ID` to pin an existing box. Available to every chat, including groups. The machine is persistent: `/data/home` survives pause/stop, and the same box is reused across turns and bot restarts. Actions include `run_command`, `run_code`, filesystem helpers, `get_url` (publish a port), `pause` / `resume` / `stop`, desktop control (`desktop_start`, `desktop_screenshot`, `desktop_stream`), and `snapshot`.
+
+Only one sandbox backend is exposed at a time. Set `"default"` in `sandboxes.json` to `linux_machine` or `sandbox`. The bot tells the model the active type and description.
 
 `list_chats` and `summarize_chat` are owner-only. The bot logs DMs and group messages it sees (even when `ignoreGroups` is true and it does not reply). Ask it to list chats, then summarize a group or pull out facts, people, decisions, and action items. Set `OWNER_NUMBERS` in `.env` (comma-separated, with country code) so only you can use these tools. Summarize reacts with an hourglass, then a check mark.
 
@@ -306,6 +342,7 @@ Useful extras:
 ```text
 LOG_LEVEL=info
 CONFIG_PATH=./config.json
+SANDBOXES_PATH=./sandboxes.json
 DEFAULT_TIMEZONE=Africa/Lagos
 AI_TIMEOUT_MS=60000
 E2B_TIMEOUT_MS=300000

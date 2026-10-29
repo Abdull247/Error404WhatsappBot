@@ -1,4 +1,4 @@
-import { env } from '../config/env.js';
+import { getAiRuntime } from '../config/providers.js';
 import { appConfig } from '../config/load-config.js';
 import { logger } from '../utils/logger.js';
 
@@ -11,9 +11,10 @@ export class AiClientError extends Error {
   }
 }
 
-export async function createChatCompletion({ messages, tools, toolChoice, temperature }) {
+export async function createChatCompletion({ messages, tools, toolChoice, temperature, runtime }) {
+  const ai = runtime || getAiRuntime();
   const payload = {
-    model: appConfig.ai.model,
+    model: ai.modelId,
     messages,
     temperature: Number.isFinite(temperature) ? temperature : appConfig.ai.temperature,
     max_tokens: appConfig.ai.maxTokens,
@@ -26,17 +27,21 @@ export async function createChatCompletion({ messages, tools, toolChoice, temper
     payload.tool_choice = toolChoice || 'auto';
   }
 
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  if (ai.apiKey) {
+    headers.Authorization = `Bearer ${ai.apiKey}`;
+  }
+
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), env.AI_TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), ai.timeoutMs);
 
   try {
-    logger.info({ model: payload.model, stream: payload.stream }, 'calling AI chat completions');
-    const response = await fetch(`${env.AI_BASE_URL}/chat/completions`, {
+    logger.info({ provider: ai.providerId, model: payload.model, stream: payload.stream }, 'calling AI chat completions');
+    const response = await fetch(`${ai.baseUrl}/chat/completions`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${env.AI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(payload),
       signal: controller.signal,
     });
@@ -53,7 +58,7 @@ export async function createChatCompletion({ messages, tools, toolChoice, temper
     return body;
   } catch (error) {
     if (error.name === 'AbortError') {
-      throw new AiClientError(`AI request timed out after ${env.AI_TIMEOUT_MS}ms`, 408);
+      throw new AiClientError(`AI request timed out after ${ai.timeoutMs}ms`, 408);
     }
     logger.error({ err: error }, 'AI request error');
     throw error;

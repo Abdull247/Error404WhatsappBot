@@ -7,6 +7,7 @@ import {
   listOwnerMachines,
 } from '../../linux-machine/session.js';
 import { instaboxConfigured } from '../../linux-machine/client.js';
+import { isOwnerJid } from '../../../whatsapp/owner.js';
 import { listPorts, publishPort, unpublishPort } from '../../linux-machine/ports.js';
 import {
   clip,
@@ -18,7 +19,6 @@ import {
   normalizeLanguage,
   writeLocalFile,
 } from '../../linux-machine/format.js';
-import { isOwnerJid } from '../../../whatsapp/owner.js';
 import { logger } from '../../../utils/logger.js';
 
 const ACTIONS = new Set([
@@ -649,11 +649,9 @@ const HANDLERS = {
   metrics: handleMetrics,
 };
 
-export async function handler(args = {}, context = {}, options = {}) {
-  if (!isOwnerJid(context.jid, context.sock)) {
-    return { ok: false, error: 'linux_machine is only available to owner numbers in a direct chat. Use sandbox for public or one-shot work.' };
-  }
+const OWNER_ACTIONS = new Set(['create', 'kill', 'stop', 'pause', 'snapshot', 'set_auto_suspend']);
 
+export async function handler(args = {}, context = {}, options = {}) {
   const missing = requireKey();
   if (missing) return missing;
 
@@ -662,6 +660,10 @@ export async function handler(args = {}, context = {}, options = {}) {
     action = cleanAction(args.action);
   } catch (error) {
     return { ok: false, error: error.message };
+  }
+
+  if (OWNER_ACTIONS.has(action) && !isOwnerJid(context.jid, context.sock)) {
+    return { ok: false, error: `${action} is only available to the bot owner.` };
   }
 
   try {

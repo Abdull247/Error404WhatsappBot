@@ -1,4 +1,5 @@
 import { appConfig } from '../config/load-config.js';
+import { getAiRuntime } from '../config/providers.js';
 import { getChatSettings } from '../db/repositories/settings.js';
 import { loadContext, saveTurn } from '../memory/store.js';
 import { findPersonality, formatPersonalityPrompt, getDefaultPersonality } from '../personalities/load.js';
@@ -51,6 +52,7 @@ export async function generateReply({
   message,
   environment = null,
   existingReaction = '',
+  image = null,
 }) {
   let history = [];
   let memories = [];
@@ -78,6 +80,8 @@ export async function generateReply({
   }
 
   const owner = isOwnerJid(jid, sock);
+  const runtime = getAiRuntime();
+  const visionImage = runtime.imageSupport ? image : null;
   const messages = buildMessages({
     userText: text,
     history: historyForPrompt,
@@ -88,7 +92,7 @@ export async function generateReply({
       ...environment,
       prompt: formatEnvironmentPrompt(environment),
     },
-    isOwner: owner,
+    image: visionImage,
   });
 
   const tools = loadTools({
@@ -96,7 +100,7 @@ export async function generateReply({
     sock,
     isOwner: owner,
   });
-  const greeting = isGreeting(text);
+  const greeting = Boolean(text) && isGreeting(text);
   const datetimeEnabled = tools.some((tool) => tool.function?.name === 'get_datetime');
 
   if (greeting && datetimeEnabled) {
@@ -135,6 +139,7 @@ export async function generateReply({
         tools,
         toolChoice,
         temperature: personality?.temperature,
+        runtime,
       });
       lastMessage = completion?.choices?.[0]?.message || null;
       if (!lastMessage) break;
@@ -175,7 +180,8 @@ export async function generateReply({
   }
 
   saveTurn(jid, 'assistant', reply, {
-    model: appConfig.ai.model,
+    model: runtime.modelId,
+    provider: runtime.providerId,
     files: artifacts.map((file) => file.filename),
   }).catch((error) => {
     logger.warn({ err: error, jid }, 'failed to save assistant turn');

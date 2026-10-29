@@ -1,0 +1,19 @@
+{
+  "default": "linux_machine",
+  "boxes": [
+    {
+      "id": "sandbox",
+      "type": "e2b",
+      "tool": "sandbox",
+      "name": "E2B sandbox",
+      "description": "Temporary isolated E2B Linux VM. One box per chat until it is killed or times out. Home is /home/user. Use for short-lived code, charts, and throwaway commands."
+    },
+    {
+      "id": "linux_machine",
+      "type": "instabox",
+      "tool": "linux_machine",
+      "name": "InstaBox Linux computer",
+      "description": "Persistent InstaBox Linux computer (Debian, /data disk, optional desktop). Shared and reused across turns for every user and group. Home is /data/home. Use for projects, servers, files that should last, and the desktop."
+    }
+  ]
+}

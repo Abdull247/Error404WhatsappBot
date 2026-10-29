@@ -1,4 +1,5 @@
 import { appConfig } from '../config/load-config.js';
+import { getDefaultSandbox, sandboxToolNames } from '../config/sandboxes.js';
 import { loadCatalog } from './catalog/load.js';
 import { getEnabledTools, registerTool } from './registry.js';
 import { logger } from '../utils/logger.js';
@@ -17,7 +18,15 @@ export async function initTools() {
 
 export function loadTools(context = {}) {
   if (!appConfig.tools.enabled) return [];
-  return getEnabledTools(appConfig.tools.allow, context);
+  const tools = getEnabledTools(appConfig.tools.allow, context);
+  const sandboxTools = new Set(sandboxToolNames());
+  const active = getDefaultSandbox();
+  if (!sandboxTools.size || !active) return tools;
+  return tools.filter((tool) => {
+    const name = tool.function?.name;
+    if (!sandboxTools.has(name)) return true;
+    return name === active.tool || name === active.id;
+  });
 }
 
 export { executeToolCall } from './executor.js';

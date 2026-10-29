@@ -3,12 +3,14 @@ import { env } from './env.js';
 
 const defaults = {
   ai: {
+    defaultModel: 'gpt-4o-mini',
     model: 'gpt-4o-mini',
     temperature: 0.7,
     maxTokens: 4096,
     topP: 1,
     stream: false,
     systemInstruction: 'You are a helpful WhatsApp assistant.',
+    providers: [],
   },
   bot: {
     name: 'Assistant',
@@ -32,7 +34,7 @@ const defaults = {
   },
   tools: {
     enabled: true,
-    allow: ['write_file', 'web_search', 'get_datetime', 'sandbox', 'list_chats', 'summarize_chat', 'react', 'screenshot'],
+    allow: ['write_file', 'web_search', 'get_datetime', 'sandbox', 'linux_machine', 'list_chats', 'summarize_chat', 'react', 'screenshot'],
     maxRounds: 10,
   },
 };
@@ -67,7 +69,14 @@ export function loadAppConfig() {
 
   const raw = fs.readFileSync(env.CONFIG_PATH, 'utf8');
   const parsed = JSON.parse(raw);
-  return deepMerge(defaults, parsed);
+  const merged = deepMerge(defaults, parsed);
+  if (!parsed?.ai?.model && merged.ai?.defaultModel) {
+    merged.ai.model = merged.ai.defaultModel;
+  }
+  if (!merged.ai.defaultModel && merged.ai.model) {
+    merged.ai.defaultModel = merged.ai.model;
+  }
+  return merged;
 }
 
 export const appConfig = loadAppConfig();

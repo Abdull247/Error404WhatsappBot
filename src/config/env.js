@@ -66,8 +66,8 @@ const port = detectPort();
 
 export const env = {
   ROOT_DIR: rootDir,
-  AI_BASE_URL: required('AI_BASE_URL').replace(/\/+$/, ''),
-  AI_API_KEY: required('AI_API_KEY'),
+  AI_BASE_URL: optional('AI_BASE_URL', '').replace(/\/+$/, ''),
+  AI_API_KEY: optional('AI_API_KEY', ''),
   AI_TIMEOUT_MS: optionalInt('AI_TIMEOUT_MS', 60000),
   DATABASE_URL: required('DATABASE_URL'),
   WHATSAPP_SESSION_DIR: path.resolve(rootDir, optional('WHATSAPP_SESSION_DIR', './session')),
@@ -81,6 +81,7 @@ export const env = {
   WHATSAPP_MAX_STALE_MS: optionalIntWithDefaultMs('WHATSAPP_MAX_STALE_MS', 10 * 60 * 1000),
   LOG_LEVEL: optional('LOG_LEVEL', 'info'),
   CONFIG_PATH: path.resolve(rootDir, optional('CONFIG_PATH', './config.json')),
+  SANDBOXES_PATH: path.resolve(rootDir, optional('SANDBOXES_PATH', './sandboxes.json')),
   TOOLS_OUTPUT_DIR: path.resolve(rootDir, optional('TOOLS_OUTPUT_DIR', './generated')),
   LANGSEARCH_API_KEY: optional('LANGSEARCH_API_KEY', ''),
   LANGSEARCH_BASE_URL: optional('LANGSEARCH_BASE_URL', 'https://api.langsearch.com/v1/web-search').replace(/\/+$/, ''),

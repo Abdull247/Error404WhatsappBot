@@ -4,7 +4,9 @@ import { generateReply } from '../ai/agent.js';
 import { tryHandleCommand } from '../commands/index.js';
 import { rememberUser } from '../memory/store.js';
 import { logger } from '../utils/logger.js';
+import { getAiRuntime } from '../config/providers.js';
 import { extractText, isGroupJid, isStatusJid, shouldIgnore, stripBotMention } from './filters.js';
+import { downloadImageAttachment, hasImageMessage } from './media.js';
 import {
   botJids,
   botNames,
@@ -46,7 +48,8 @@ export async function handleIncomingMessage(sock, message) {
   if (appConfig.bot.ignoreStatus && isStatusJid(jid)) return;
 
   const text = extractText(message);
-  if (!text) {
+  const hasImage = hasImageMessage(message);
+  if (!text && !hasImage) {
     logger.debug({ jid }, 'ignored message with no text');
     return;
   }
@@ -141,23 +144,37 @@ export async function handleIncomingMessage(sock, message) {
       });
     }
 
-    const commandReply = await tryHandleCommand({
-      text: promptText,
-      jid,
-      pushName,
-      sock,
-      message,
-      environment,
-    });
+    const commandReply = promptText && promptText.startsWith(prefix)
+      ? await tryHandleCommand({
+          text: promptText,
+          jid,
+          pushName,
+          sock,
+          message,
+          environment,
+        })
+      : null;
+    let image = null;
+    const vision = getAiRuntime().imageSupport;
+    if (commandReply == null && hasImage && vision) {
+      try {
+        image = await downloadImageAttachment(sock, message);
+      } catch (error) {
+        logger.warn({ err: error, jid }, 'failed to download attached image');
+      }
+    }
+    const replyTextInput = promptText
+      || (image ? '' : (hasImage ? 'The user sent an image.' : ''));
     const reply = commandReply == null
       ? await generateReply({
           jid,
-          text: promptText,
+          text: replyTextInput,
           pushName,
           sock,
           message,
           environment,
           existingReaction,
+          image,
         })
       : { text: commandReply, artifacts: [] };
     const artifacts = reply.artifacts || [];

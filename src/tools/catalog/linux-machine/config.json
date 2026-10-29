@@ -4,7 +4,7 @@
     "type": "function",
     "function": {
       "name": "linux_machine",
-      "description": "Owner-only persistent InstaBox Linux computer (Firecracker VM with /data disk, Debian, desktop+browser on agent-browser). Reused across turns and bot restarts. Use this instead of sandbox when the owner needs work that should last (projects, servers, desktop, files on /data). sandbox/E2B stays for public users and one-shot throwaway runs. Auto-creates or resumes the owner's machine. Home is /data/home.",
+      "description": "Persistent InstaBox Linux computer (Firecracker VM with /data disk, Debian, desktop+browser on agent-browser). Available in DMs and groups. Reused across turns and bot restarts. Use this for work that should last (projects, servers, desktop, files on /data). Home is /data/home.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -160,7 +160,6 @@
   },
   "options": {
     "slow": true,
-    "ownerOnly": true,
     "commandTimeoutMs": 120000,
     "maxOutputChars": 8000,
     "home": "/data/home"
