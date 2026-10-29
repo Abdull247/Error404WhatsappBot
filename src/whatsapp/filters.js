@@ -31,7 +31,6 @@ export function extractText(message) {
 
 export function shouldIgnore(message) {
   if (!message) return true;
-  if (message.key?.fromMe) return true;
   if (message.key?.remoteJid === 'status@broadcast') return true;
   if (message.messageStubType) return true;
 

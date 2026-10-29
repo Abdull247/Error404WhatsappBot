@@ -51,9 +51,14 @@ export async function generateReply({ jid, text, pushName, sock, message }) {
     logger.warn({ err: error, jid }, 'failed to load memory, continuing without it');
   }
 
+  const lastHistory = history[history.length - 1];
+  const historyForPrompt = lastHistory?.role === 'user' && lastHistory.content === text
+    ? history.slice(0, -1)
+    : history;
+
   const messages = buildMessages({
     userText: text,
-    history,
+    history: historyForPrompt,
     memories,
     pushName,
   });
@@ -119,9 +124,6 @@ export async function generateReply({ jid, text, pushName, sock, message }) {
     reply = 'I could not generate a reply just now.';
   }
 
-  saveTurn(jid, 'user', text, { pushName }).catch((error) => {
-    logger.warn({ err: error, jid }, 'failed to save user turn');
-  });
   saveTurn(jid, 'assistant', reply, {
     model: appConfig.ai.model,
     files: artifacts.map((file) => file.filename),

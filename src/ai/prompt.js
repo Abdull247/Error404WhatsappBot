@@ -17,7 +17,11 @@ When the user asks you to run code, try a snippet, install packages, use a termi
 - download: send a sandbox file back to the user on WhatsApp.
 - info / kill / set_timeout / create: lifecycle.
 
-Do not dump large program output as chat. Summarize stdout/stderr and mention files or URLs. If a chart or image is produced, it is already sent. Kill the sandbox when the user is clearly done.`;
+Do not dump large program output as chat. Summarize stdout/stderr and mention files or URLs. If a chart or image is produced, it is already sent. Kill the sandbox when the user is clearly done.
+
+When the owner asks which chats, groups, or DMs the bot has, you MUST call list_chats. Filter with query or type=group/dm when they ask for a subset. Then answer with names, types, last message, and counts. Do not invent chats that were not returned.
+
+When the owner asks to summarize a chat, recap a group, or extract facts, decisions, people, or action items from a conversation, first list_chats if you do not already have the exact name or jid, then call summarize_chat with that chat. Prefer the returned summary, facts, people, decisions, and actionItems. Quote only from the tool result. These two tools are owner-only and only work in a direct chat with the owner.`;
 
 export function buildMessages({ userText, history, memories, pushName }) {
   const messages = [

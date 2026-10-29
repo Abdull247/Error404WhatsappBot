@@ -1,0 +1,94 @@
+import { upsertChat } from '../db/repositories/chats.js';
+import { addMessage } from '../db/repositories/conversations.js';
+import { logger } from '../utils/logger.js';
+import { extractText, isGroupJid } from './filters.js';
+import { getCurrentSocket } from './socket.js';
+
+const MAX_PREVIEW = 240;
+
+function preview(text) {
+  const value = String(text || '').replace(/\s+/g, ' ').trim();
+  if (value.length <= MAX_PREVIEW) return value;
+  return `${value.slice(0, MAX_PREVIEW)}...`;
+}
+
+function participantJid(message, jid) {
+  return message.key?.participant
+    || message.participant
+    || (isGroupJid(jid) ? null : jid);
+}
+
+export async function resolveChatName(sock, jid, fallbackName = null) {
+  if (fallbackName) return fallbackName;
+  const client = sock || getCurrentSocket();
+  if (!client) return null;
+
+  try {
+    if (isGroupJid(jid) && typeof client.groupMetadata === 'function') {
+      const meta = await client.groupMetadata(jid);
+      return meta?.subject || null;
+    }
+  } catch (error) {
+    logger.debug({ err: error, jid }, 'failed to load group metadata');
+  }
+
+  try {
+    if (typeof client.onWhatsApp === 'function' && !isGroupJid(jid)) {
+      const info = await client.onWhatsApp(jid);
+      const first = Array.isArray(info) ? info[0] : info;
+      if (first?.notify) return first.notify;
+    }
+  } catch {
+    // ignore
+  }
+
+  return null;
+}
+
+export async function logIncomingMessage(sock, message, { text, pushName, replied = false } = {}) {
+  const jid = message?.key?.remoteJid;
+  if (!jid) return;
+
+  const body = text || extractText(message);
+  if (!body) return;
+
+  const type = isGroupJid(jid) ? 'group' : 'dm';
+  const sender = participantJid(message, jid);
+  const name = await resolveChatName(sock, jid, type === 'dm' ? pushName : null);
+
+  try {
+    await upsertChat({
+      jid,
+      name,
+      type,
+      lastMessage: preview(body),
+      lastSender: pushName || sender,
+      metadata: {
+        lastParticipant: sender,
+        lastPushName: pushName || null,
+      },
+    });
+  } catch (error) {
+    logger.warn({ err: error, jid }, 'failed to upsert chat listing');
+  }
+
+  const fromMe = Boolean(message.key?.fromMe);
+
+  try {
+    await addMessage({
+      jid,
+      role: 'user',
+      content: body,
+      metadata: {
+        pushName: pushName || (fromMe ? 'You' : null),
+        participant: sender,
+        fromMe,
+        messageId: message.key?.id || null,
+        replied,
+        source: 'whatsapp',
+      },
+    });
+  } catch (error) {
+    logger.warn({ err: error, jid }, 'failed to log incoming chat message');
+  }
+}

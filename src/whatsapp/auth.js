@@ -9,6 +9,7 @@ import { Boom } from '@hapi/boom';
 import qrcode from 'qrcode-terminal';
 import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
+import { setCurrentSocket } from './socket.js';
 
 let reconnecting = false;
 let pairingRequested = false;
@@ -71,6 +72,7 @@ export async function createWhatsAppSocket({ onMessage }) {
     getMessage: async () => undefined,
   });
 
+  setCurrentSocket(sock);
   sock.ev.on('creds.update', saveCreds);
 
   sock.ev.on('connection.update', async (update) => {

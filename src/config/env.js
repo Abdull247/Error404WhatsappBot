@@ -51,6 +51,7 @@ export const env = {
   WHATSAPP_PRINT_QR: optionalBool('WHATSAPP_PRINT_QR', true),
   WHATSAPP_PHONE_NUMBER: phoneNumber,
   WHATSAPP_USE_PAIRING_CODE: optionalBool('WHATSAPP_USE_PAIRING_CODE', Boolean(phoneNumber)),
+  OWNER_NUMBERS: optional('OWNER_NUMBERS', phoneNumber),
   LOG_LEVEL: optional('LOG_LEVEL', 'info'),
   CONFIG_PATH: path.resolve(rootDir, optional('CONFIG_PATH', './config.json')),
   TOOLS_OUTPUT_DIR: path.resolve(rootDir, optional('TOOLS_OUTPUT_DIR', './generated')),

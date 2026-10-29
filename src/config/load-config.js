@@ -17,6 +17,8 @@ const defaults = {
     respondToMentionsInGroups: true,
     typingIndicator: true,
     markMessagesRead: true,
+    ownerNumbers: [],
+    logGroupMessages: true,
   },
   memory: {
     enabled: true,
@@ -25,7 +27,7 @@ const defaults = {
   },
   tools: {
     enabled: true,
-    allow: ['write_file', 'web_search', 'get_datetime', 'sandbox'],
+    allow: ['write_file', 'web_search', 'get_datetime', 'sandbox', 'list_chats', 'summarize_chat'],
     maxRounds: 10,
   },
 };

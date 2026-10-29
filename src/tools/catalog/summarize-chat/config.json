@@ -1,0 +1,32 @@
+{
+  "enabled": true,
+  "definition": {
+    "type": "function",
+    "function": {
+      "name": "summarize_chat",
+      "description": "Load recent messages from a WhatsApp chat this bot has logged, then return a transcript plus a compact fact sheet. Use after list_chats when the owner asks to summarize a group or DM, recap what people said, or extract facts, decisions, names, dates, and action items. Match by chat name or jid.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "chat": {
+            "type": "string",
+            "description": "Chat name, jid, or search text from list_chats, for example Family Group or 120363...@g.us"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "How many recent messages to include, 10 to 200. Default 80."
+          },
+          "focus": {
+            "type": "string",
+            "description": "Optional topic to highlight, for example meeting time, money, or who is traveling"
+          }
+        },
+        "required": ["chat"]
+      }
+    }
+  },
+  "options": {
+    "slow": true,
+    "limit": 80
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "enabled": true,
+  "definition": {
+    "type": "function",
+    "function": {
+      "name": "list_chats",
+      "description": "List WhatsApp chats this bot has seen, with names, type (dm or group), last message preview, and message counts. Use this when the owner asks which chats, groups, or DMs are available, or before summarizing a particular chat. Filter with query or type.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Optional name or jid substring to search, for example Family or 23480"
+          },
+          "type": {
+            "type": "string",
+            "description": "Optional filter: all, dm, or group. Default all."
+          },
+          "limit": {
+            "type": "integer",
+            "description": "How many chats to return, 1 to 50. Default 20."
+          }
+        }
+      }
+    }
+  },
+  "options": {
+    "limit": 20
+  }
+}

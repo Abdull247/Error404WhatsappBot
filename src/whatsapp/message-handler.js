@@ -3,6 +3,8 @@ import { generateReply } from '../ai/agent.js';
 import { rememberUser } from '../memory/store.js';
 import { logger } from '../utils/logger.js';
 import { extractText, isGroupJid, isStatusJid, shouldIgnore, unwrapMessageContent } from './filters.js';
+import { logIncomingMessage } from './log-message.js';
+import { markBotReply, wasRecentBotReply } from './outbound.js';
 import { sendArtifacts } from './send.js';
 
 const inflight = new Set();
@@ -40,8 +42,11 @@ export async function handleIncomingMessage(sock, message) {
   if (!jid) return;
   if (appConfig.bot.ignoreStatus && isStatusJid(jid)) return;
 
-  const group = isGroupJid(jid);
-  if (group && appConfig.bot.ignoreGroups && !mentionedBot(sock, message)) return;
+  const text = extractText(message);
+  if (!text) {
+    logger.debug({ jid }, 'ignored message with no text');
+    return;
+  }
 
   const ageMs = Date.now() - Number(message.messageTimestamp || 0) * 1000;
   if (Number.isFinite(ageMs) && ageMs > 2 * 60 * 1000) {
@@ -49,31 +54,46 @@ export async function handleIncomingMessage(sock, message) {
     return;
   }
 
-  const text = extractText(message);
-  if (!text) {
-    logger.debug({ jid }, 'ignored message with no text');
-    return;
-  }
-
   const messageId = message.key.id || `${jid}:${text}`;
   if (inflight.has(messageId)) return;
   inflight.add(messageId);
 
+  const group = isGroupJid(jid);
+  const fromMe = Boolean(message.key?.fromMe);
   const pushName = message.pushName || null;
-  logger.info({ jid, pushName, text }, 'incoming WhatsApp message');
-
-  await showTyping(sock, jid);
-
-  if (appConfig.bot.markMessagesRead) {
-    sock.readMessages([message.key]).catch((error) => {
-      logger.warn({ err: error, jid }, 'failed to mark message as read');
-    });
-  }
+  const mentioned = mentionedBot(sock, message);
+  const shouldLog = (!group || appConfig.bot.logGroupMessages !== false)
+    && !(fromMe && wasRecentBotReply(jid));
+  const shouldReply = !fromMe && (!group || !appConfig.bot.ignoreGroups || mentioned);
 
   try {
-    rememberUser(jid, pushName).catch((error) => {
-      logger.warn({ err: error, jid }, 'failed to persist user, continuing without memory write');
-    });
+    if (shouldLog) {
+      const logPromise = logIncomingMessage(sock, message, { text, pushName, replied: shouldReply });
+      if (shouldReply) {
+        await logPromise;
+      } else {
+        logPromise.catch((error) => {
+          logger.warn({ err: error, jid }, 'failed to log incoming chat');
+        });
+      }
+    }
+
+    if (!shouldReply) return;
+
+    logger.info({ jid, pushName, text }, 'incoming WhatsApp message');
+    await showTyping(sock, jid);
+
+    if (appConfig.bot.markMessagesRead) {
+      sock.readMessages([message.key]).catch((error) => {
+        logger.warn({ err: error, jid }, 'failed to mark message as read');
+      });
+    }
+
+    if (!group) {
+      rememberUser(jid, pushName).catch((error) => {
+        logger.warn({ err: error, jid }, 'failed to persist user, continuing without memory write');
+      });
+    }
 
     const reply = await generateReply({ jid, text, pushName, sock, message });
     const artifacts = reply.artifacts || [];
@@ -83,6 +103,7 @@ export async function handleIncomingMessage(sock, message) {
       await sendArtifacts(sock, jid, artifacts, message);
     }
 
+    markBotReply(jid);
     await sock.sendMessage(jid, { text: replyText }, { quoted: message });
     logger.info({ jid, files: artifacts.length }, 'sent WhatsApp reply');
   } catch (error) {
@@ -95,7 +116,9 @@ export async function handleIncomingMessage(sock, message) {
       logger.error({ err: sendError, jid }, 'failed to send error reply');
     }
   } finally {
-    await stopTyping(sock, jid);
+    if (shouldReply) {
+      await stopTyping(sock, jid);
+    }
     inflight.delete(messageId);
   }
 }
