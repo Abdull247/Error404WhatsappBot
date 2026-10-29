@@ -97,33 +97,33 @@ Tool calling is enabled in `config.json`. Each tool lives in `src/tools/catalog/
 
 ## Custom instructions
 
-`custom-instructions.json` (project root, deploys with git) holds always-on identity and creator facts. They are injected into the system prompt on every message, in every chat, under every personality. The bot uses them to answer "who built you", credit the developer, and route bug reports.
+`custom-instructions.json` (project root, deploys with git) holds always-on identity, creator, and project knowledge. It is injected into the system prompt on every message, in every chat, under every personality. The bot uses it to answer "who built you", credit the developer, describe their projects accurately, and route bug reports.
 
 ```json
 {
-  "bot": {
-    "name": "Jen404"
-  },
-  "creator": {
-    "name": "Error404",
-    "whatsapp": "+2347063349393",
-    "portfolio": "https://buildwith404.web.app",
-    "about": "Nigerian web, Android, and AI agent developer",
-    "github": "https://github.com/Abdull247"
-  },
-  "instructions": [
-    "These facts are always true, whatever personality is active.",
-    "When someone asks who built you, credit Error404 and share the contact details above."
-  ]
+  "bot": { "name": "Jen404", "type": "...", "identity": "..." },
+  "creator": { "name": "Error404", "whatsapp": "...", "portfolio": "...", "github": "...", "about": "..." },
+  "instructions": ["always-on rules"],
+  "developer_profile": { "...": "specializations, technologies, approach" },
+  "projects": { "...": "one entry per project" },
+  "technical_preferences": { "...": "..." },
+  "response_guidelines": { "...": "tone, creator_questions.default canned answer, ..." }
 }
 ```
+
+How it is rendered into the prompt:
+
+- `bot` and `creator` become the identity header; `response_guidelines.creator_questions.default` becomes the canned "who made you" answer.
+- Top-level `instructions` become permanent rules that survive every personality switch.
+- Every other top-level section (`developer_profile`, `projects`, `technical_preferences`, `response_guidelines`, and anything new you add later) is rendered generically as readable nested bullets.
+- An `instructions` array at any nesting depth becomes a "Keep in mind:" sub-block at that spot, so per-project accuracy rules stay attached to their project.
 
 Notes:
 
 - `bot.name` also feeds @mention detection in groups, alongside `bot.name` in `config.json`. Keep them in sync.
-- Extra entries in `instructions` become additional always-on behavior rules.
+- The rendered block is cached per process; restart (or redeploy) after editing the JSON.
 - Missing or invalid file only logs a warning; the bot still starts.
-- Personalities in `personalities/` change style. This file changes identity. Both apply together.
+- Personalities in `personalities/` change style. This file changes identity and facts. Both apply together.
 
 ## Commands
 
