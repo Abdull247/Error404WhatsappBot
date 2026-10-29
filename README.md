@@ -6,6 +6,7 @@ Node.js WhatsApp bot using Baileys, an OpenAI-compatible AI API, and Neon Postgr
 
 ```text
 config.json
+custom-instructions.json
 .env.example
 migrations/
 src/
@@ -20,6 +21,7 @@ src/
 ```
 
 - `config.json` holds model name, system instruction, bot behavior, and memory settings.
+- `custom-instructions.json` holds always-on identity and creator details injected into every system prompt.
 - In groups the bot stays quiet unless it is @mentioned or someone replies to one of its messages. Replies are quoted so the group can follow the thread. The AI is told it is in a group and gets the group name, description, and speaker.
 - `.env` holds secrets and connection URLs.
 - `migrations/` holds SQL files applied on startup.
@@ -92,6 +94,36 @@ Tool calling is enabled in `config.json`. Each tool lives in `src/tools/catalog/
 `react` puts one emoji on the current WhatsApp message. In groups, if someone tags the bot or replies to it with something funny, hype, or grateful, it can react first and then send a text reply.
 
 `screenshot` captures a website with the Screenshotlayer API and sends the image on WhatsApp. Set `SCREENSHOTLAYER_API_KEY` in `.env`. Ask for a screenshot of a URL, optionally full page or a mobile viewport. Capture reacts with an hourglass, then a check mark.
+
+## Custom instructions
+
+`custom-instructions.json` (project root, deploys with git) holds always-on identity and creator facts. They are injected into the system prompt on every message, in every chat, under every personality. The bot uses them to answer "who built you", credit the developer, and route bug reports.
+
+```json
+{
+  "bot": {
+    "name": "Jen404"
+  },
+  "creator": {
+    "name": "Error404",
+    "whatsapp": "+2347063349393",
+    "portfolio": "https://buildwith404.web.app",
+    "about": "Nigerian web, Android, and AI agent developer",
+    "github": "https://github.com/Abdull247"
+  },
+  "instructions": [
+    "These facts are always true, whatever personality is active.",
+    "When someone asks who built you, credit Error404 and share the contact details above."
+  ]
+}
+```
+
+Notes:
+
+- `bot.name` also feeds @mention detection in groups, alongside `bot.name` in `config.json`. Keep them in sync.
+- Extra entries in `instructions` become additional always-on behavior rules.
+- Missing or invalid file only logs a warning; the bot still starts.
+- Personalities in `personalities/` change style. This file changes identity. Both apply together.
 
 ## Commands
 

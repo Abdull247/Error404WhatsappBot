@@ -1,5 +1,6 @@
 import { areJidsSameUser, jidNormalizedUser } from '@whiskeysockets/baileys';
 import { appConfig } from '../config/load-config.js';
+import { customInstructions } from '../config/custom-instructions.js';
 import { logger } from '../utils/logger.js';
 import { extractText, isGroupJid, unwrapMessageContent } from './filters.js';
 
@@ -55,6 +56,7 @@ export function botNames(sock) {
   return [...new Set(
     [
       appConfig.bot.name,
+      customInstructions?.bot?.name,
       sock?.user?.name,
       sock?.user?.notify,
       sock?.user?.verifiedName,
