@@ -1,0 +1,23 @@
+{
+  "enabled": true,
+  "definition": {
+    "type": "function",
+    "function": {
+      "name": "send_sticker",
+      "description": "Send a WhatsApp sticker from the local stickers library, or list what is available. Use this when a sticker matches the vibe better than (or as well as) plain text: greetings with respect, Nigerian hail/oga energy, humour, or a reaction that has a matching pack. Call list if you are unsure which id to pick. After sending, still write a short normal text reply. Never mention that you sent a sticker.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "list: return every sticker id, folder, path, description, and whenToUse. send: deliver one sticker to the current chat. Default send."
+          },
+          "id": {
+            "type": "string",
+            "description": "Sticker id from stickers/config.json, for example my_boss. Also accepts the folder name."
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,1 +1,24 @@
-//info here, remove comments
+{
+  "id": "my_boss",
+  "name": "My boss",
+  "folder": "my_boss",
+  "file": "my_boss_sticker.webp",
+  "path": "stickers/my_boss/my_boss_sticker.webp",
+  "catalog": "stickers/config.json",
+  "enabled": true,
+  "tags": [
+    "greeting",
+    "respect",
+    "nigeria",
+    "pidgin",
+    "bow",
+    "prostrate",
+    "oga",
+    "honorific",
+    "funny",
+    "meme"
+  ],
+  "description": "Funny Nigerian meme sticker of a small boy in an exaggerated respectful bow: head on the ground, bum in the air, white caption 'My boss'. Street, warm, and humorous — a show of respect, not a workplace org chart.",
+  "whenToUse": "This is a Nigerian comic-respect greeting, not a literal 'I report to my manager' sticker. In everyday Nigerian talk (Pidgin, Yoruba-influenced English, street slang), 'my boss', 'oga', 'chief', 'chairman', and 'sir/ma' are warm honorifics you can give almost anyone you want to hail with respect: an elder, a customer, a mentor, a friend, someone who just did you a favour, or the person you are chatting with. The boy is doing a deep, almost acrobatic bow / partial prostration (head touching the ground) which reads as playful deference: 'I greet you. I respect you. You are the big person here.' Use it when the vibe is greeting-plus-respect, especially with Nigerian flavour.\n\nSend my_boss when:\n1. Opening or returning a greeting that deserves respect: hi, hello, good morning, good afternoon, good evening, how far, how you dey, I greet you, salute, respect, 'my oga at the top', 'chairman', 'boss how far'.\n2. The user is older, senior, a parent, a customer, a client, a mentor, or anyone the bot should show deference to — including calling the user 'boss' as a friendly Nigerian habit, even if they are not an employer.\n3. The user greets the bot first in a respectful or Nigerian way ('how far boss', 'my guy', 'oga', 'good morning sir', 'good morning ma').\n4. Acknowledging a favour, praise, money, an order, or 'please help me' with humorous humility — the exaggerated bow says 'I hear you, big man / big woman' without being stiff.\n5. Group chats when someone important just joined, was praised, is being hailed, or the room is in a 'yes chairman' mood.\n6. Light 'yes sir' / 'I dey your back' energy after a request, as long as it stays fond and funny, not sarcastic or defeated.\n\nTone to match: fond, street, respectful, meme. It is a greeting and a hail, the way a Nigerian might touch the ground or bow slightly while saying 'my boss'. Pair it with a short warm text if needed (good morning, how far, noted sir) but do not explain the sticker or say you sent one.\n\nDo not treat 'boss' as only a workplace title. Do not use it as grovelling after a mistake, as begging, or as mockery. Prefer it when the turn has greeting, respect, hail, or Nigerian humour — not on every single hello.",
+  "whenNotToUse": "Skip this sticker for sad news, condolences, arguments, anger, bug reports, or dry technical questions that need a straight answer. Do not use it when the user asks who created the bot or who the real boss is (answer that in text from custom instructions). Do not use it as shame, defeat, or sarcastic grovelling. Do not spam it on every greeting; save it for respect, hail, or Nigerian-flavoured hello energy."
+}

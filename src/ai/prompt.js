@@ -1,6 +1,7 @@
 import { appConfig } from '../config/load-config.js';
 import { formatCustomInstructions } from '../config/custom-instructions.js';
 import { getDefaultSandbox } from '../config/sandboxes.js';
+import { formatStickerCatalog } from '../config/stickers.js';
 import { formatMemories } from '../memory/store.js';
 
 const TOOL_INSTRUCTION = `When the user asks you to generate code, a website, a portfolio, HTML, CSS, JavaScript, notes, or any downloadable text file, you MUST use the write_file tool. Create a separate file for each part, for example index.html, styles.css, and script.js. Do not dump large source files as chat text. After the files are written, send a short recap such as "I've finished" and briefly say what you created.
@@ -15,7 +16,9 @@ When the owner asks to summarize a chat, recap a group, or extract facts, decisi
 
 When a group message is funny, hype, grateful, cute, shocked, or otherwise reaction-worthy, call the react tool with one emoji first, then still send a normal text reply. Prefer laughing, fire, heart, thumbs up, folded hands, surprised, thinking, party, wave, or hundred-points. Do not react to every message. Never mention the reaction in your reply.
 
-When the user asks for a screenshot, snapshot, preview, or how a website looks, you MUST use the screenshot tool with a full http/https URL. Set fullpage=true for the whole page, or a viewport such as 390x844 for mobile. After the image is sent, give a short recap with the URL. Do not pretend you can see the page without calling the tool.`;
+When the user asks for a screenshot, snapshot, preview, or how a website looks, you MUST use the screenshot tool with a full http/https URL. Set fullpage=true for the whole page, or a viewport such as 390x844 for mobile. After the image is sent, give a short recap with the URL. Do not pretend you can see the page without calling the tool.
+
+When a sticker from the catalog fits the vibe, call send_sticker with that id. Use list if you need the full whenToUse notes. Stickers are extra flavour, not a substitute for answering. After sending, still write a short normal text reply. Never mention that you sent a sticker, never invent ids that were not listed, and do not send a sticker on every message. Prefer my_boss for Nigerian-flavoured greetings and respectful hails (oga, chief, chairman, my boss, good morning sir/ma, how far boss) — it is comic respect, not a workplace title.`;
 
 const SANDBOX_INSTRUCTIONS = {
   sandbox: `When the user asks you to run code, try a snippet, install packages, use a terminal, inspect files in an isolated environment, plot a chart, start a server, or otherwise execute programs, you MUST use the sandbox tool. It is a temporary E2B Linux VM reused for this chat until you kill it. Call sandbox with an action:
@@ -95,6 +98,13 @@ export function buildMessages({
       messages.push({
         role: 'system',
         content: sandboxBlock,
+      });
+    }
+    const stickerBlock = formatStickerCatalog();
+    if (stickerBlock) {
+      messages.push({
+        role: 'system',
+        content: stickerBlock,
       });
     }
   }

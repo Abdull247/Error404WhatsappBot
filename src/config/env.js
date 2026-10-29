@@ -82,6 +82,7 @@ export const env = {
   LOG_LEVEL: optional('LOG_LEVEL', 'info'),
   CONFIG_PATH: path.resolve(rootDir, optional('CONFIG_PATH', './config.json')),
   SANDBOXES_PATH: path.resolve(rootDir, optional('SANDBOXES_PATH', './sandboxes.json')),
+  STICKERS_PATH: path.resolve(rootDir, optional('STICKERS_PATH', './stickers/config.json')),
   TOOLS_OUTPUT_DIR: path.resolve(rootDir, optional('TOOLS_OUTPUT_DIR', './generated')),
   LANGSEARCH_API_KEY: optional('LANGSEARCH_API_KEY', ''),
   LANGSEARCH_BASE_URL: optional('LANGSEARCH_BASE_URL', 'https://api.langsearch.com/v1/web-search').replace(/\/+$/, ''),

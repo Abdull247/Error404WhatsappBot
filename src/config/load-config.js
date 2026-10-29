@@ -34,7 +34,7 @@ const defaults = {
   },
   tools: {
     enabled: true,
-    allow: ['write_file', 'web_search', 'get_datetime', 'sandbox', 'linux_machine', 'list_chats', 'summarize_chat', 'react', 'screenshot'],
+    allow: ['write_file', 'web_search', 'get_datetime', 'sandbox', 'linux_machine', 'list_chats', 'summarize_chat', 'react', 'screenshot', 'send_sticker'],
     maxRounds: 10,
   },
 };

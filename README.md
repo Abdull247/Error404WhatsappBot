@@ -7,6 +7,7 @@ Node.js WhatsApp bot using Baileys, an OpenAI-compatible AI API, and Neon Postgr
 ```text
 config.json
 sandboxes.json
+stickers/
 custom-instructions.json
 .env.example
 migrations/
@@ -23,6 +24,7 @@ src/
 
 - `config.json` holds AI providers and models, the default model, system instruction, bot behavior, and memory settings.
 - `sandboxes.json` holds sandbox backends and which one is active (`default`). Only that sandbox's tools are exposed.
+- `stickers/` holds WhatsApp sticker packs: one folder per sticker (webp + `info.json`) and `stickers/config.json` listing them for the model.
 - `custom-instructions.json` holds always-on identity and creator details injected into every system prompt.
 - In groups the bot stays quiet unless it is @mentioned or someone replies to one of its messages. Replies are quoted so the group can follow the thread. The AI is told it is in a group and gets the group name, description, and speaker.
 - `.env` holds secrets and connection URLs.
@@ -132,6 +134,8 @@ Only one sandbox backend is exposed at a time. Set `"default"` in `sandboxes.jso
 `list_chats` and `summarize_chat` are owner-only. The bot logs DMs and group messages it sees (even when `ignoreGroups` is true and it does not reply). Ask it to list chats, then summarize a group or pull out facts, people, decisions, and action items. Set `OWNER_NUMBERS` in `.env` (comma-separated, with country code) so only you can use these tools. Summarize reacts with an hourglass, then a check mark.
 
 `react` puts one emoji on the current WhatsApp message. In groups, if someone tags the bot or replies to it with something funny, hype, or grateful, it can react first and then send a text reply.
+
+`send_sticker` sends a WhatsApp sticker from `stickers/`. Each pack is a folder with a `.webp` and `info.json` (`id`, `description`, `whenToUse`, path). `stickers/config.json` lists every pack so the model can pick one. Call `list` to inspect, then `send` with an id such as `my_boss`. After the sticker, the bot still sends a short text reply.
 
 `screenshot` captures a website with the Screenshotlayer API and sends the image on WhatsApp. Set `SCREENSHOTLAYER_API_KEY` in `.env`. Ask for a screenshot of a URL, optionally full page or a mobile viewport. Capture reacts with an hourglass, then a check mark.
 
@@ -343,6 +347,7 @@ Useful extras:
 LOG_LEVEL=info
 CONFIG_PATH=./config.json
 SANDBOXES_PATH=./sandboxes.json
+STICKERS_PATH=./stickers/config.json
 DEFAULT_TIMEZONE=Africa/Lagos
 AI_TIMEOUT_MS=60000
 E2B_TIMEOUT_MS=300000

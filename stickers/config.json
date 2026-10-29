@@ -1,0 +1,12 @@
+{
+  "stickers": [
+    {
+      "id": "my_boss",
+      "name": "My boss",
+      "folder": "my_boss",
+      "path": "stickers/my_boss/my_boss_sticker.webp",
+      "info": "stickers/my_boss/info.json",
+      "description": "Nigerian comic-respect greeting. A small boy bows until his head touches the ground, caption 'My boss'. Use it to hail someone with playful respect: elders, customers, mentors, friends, or the user themselves — the way Nigerians say oga, chief, chairman, or my boss. It is a greeting and a show of respect, not a literal workplace boss sticker."
+    }
+  ]
+}
