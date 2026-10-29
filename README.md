@@ -117,3 +117,128 @@ npm run dev
 # run SQL migrations only
 npm run migrate
 ```
+
+## Deploy on Render
+
+Deploy this as a **Background Worker**, not a Web Service, Static Site, Cron Job, or Private Service.
+
+This process does not serve HTTP. It keeps a WhatsApp socket open, talks to Neon, and calls AI/tool APIs. A Web Service will fail health checks because nothing listens on `PORT`. A Background Worker is the correct Render type for that.
+
+Use a **paid** instance so Render does not spin it down. Free web services sleep; this bot must stay connected.
+
+### Create the service
+
+1. New > Background Worker.
+2. Connect this GitHub repo.
+3. Runtime: **Node**.
+4. Instance: a paid plan (Starter or higher). Do not use a free web service.
+5. Settings:
+
+```text
+Name: error404-whatsapp-bot
+Region: closest to you
+Branch: main
+Root Directory: (leave empty)
+Runtime: Node
+Build Command: npm install
+Start Command: npm start
+```
+
+Set the Node version to 18 or newer. In the Render dashboard add:
+
+```text
+NODE_VERSION=20
+```
+
+Or add an `.node-version` / `NODE_VERSION` env var. `package.json` requires `>=18.18.0`.
+
+### Persistent disk
+
+Baileys stores the WhatsApp session on disk. If that folder is lost, you have to link the phone again.
+
+On the paid worker, add a persistent disk:
+
+```text
+Name: whatsapp-data
+Mount Path: /data
+Size: 1 GB
+```
+
+Then set:
+
+```text
+WHATSAPP_SESSION_DIR=/data/session
+TOOLS_OUTPUT_DIR=/data/generated
+```
+
+Without this, every deploy or restart wipes `./session` and the bot logs out.
+
+### Environment variables
+
+In Render > Environment, add the same keys as `.env.example`. Do not upload a `.env` file.
+
+Required:
+
+```text
+AI_BASE_URL
+AI_API_KEY
+DATABASE_URL
+```
+
+WhatsApp linking (pairing code, recommended on Render):
+
+```text
+WHATSAPP_USE_PAIRING_CODE=true
+WHATSAPP_PHONE_NUMBER=2348012345678
+WHATSAPP_PRINT_QR=false
+OWNER_NUMBERS=2348012345678
+```
+
+Use digits only, with country code, no `+` or spaces.
+
+Optional tools:
+
+```text
+LANGSEARCH_API_KEY
+E2B_API_KEY
+SCREENSHOTLAYER_API_KEY
+SCREENSHOTLAYER_SECRET
+```
+
+Useful extras:
+
+```text
+LOG_LEVEL=info
+CONFIG_PATH=./config.json
+DEFAULT_TIMEZONE=Africa/Lagos
+AI_TIMEOUT_MS=60000
+E2B_TIMEOUT_MS=300000
+```
+
+`config.json` is in the repo, so model/personality settings deploy with git. Secrets stay in Render env vars.
+
+### First boot / link WhatsApp
+
+1. Deploy the worker.
+2. Open **Logs**.
+3. Wait for a pairing code line such as `WhatsApp pairing code ready`.
+4. On your phone: Linked Devices > Link with phone number > enter the code.
+5. After `WhatsApp connected`, leave the worker running.
+
+If the session is already on the persistent disk, later deploys reconnect without a new code.
+
+Do not use QR login on Render unless you can read the ASCII QR in logs. Pairing code is the reliable path.
+
+### What not to deploy it as
+
+- **Web Service**: Render expects HTTP on `$PORT`. This bot never binds a port.
+- **Static Site**: there is no frontend build to host.
+- **Cron Job**: the WhatsApp socket must stay open, not run once and exit.
+- **Private Service**: still the wrong shape, and nothing else in this repo needs to call it over HTTP.
+
+### After deploy
+
+- Migrations run on startup (`runMigrations` in `src/index.js`). You do not need a separate migrate step.
+- Scale to **1 instance**. Two workers with the same session will fight over the WhatsApp link.
+- If the bot stops answering, check logs for disconnects, then confirm the persistent disk still has `/data/session`.
+- To relink, clear `/data/session` on the disk (or change `WHATSAPP_SESSION_DIR`) and restart. A new pairing code will print in logs.
