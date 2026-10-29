@@ -32,6 +32,7 @@ Copy `.env.example` to `.env` and fill in:
 - `AI_BASE_URL`
 - `AI_API_KEY`
 - `DATABASE_URL`
+- `LANGSEARCH_API_KEY`
 
 Edit `config.json` for model, temperature, and system instruction.
 
@@ -66,6 +67,8 @@ Use digits only, including country code. Then start the bot and enter the printe
 Tool calling is enabled in `config.json`. Each tool lives in `src/tools/catalog/<tool-name>/`.
 
 `write_file` creates files under `generated/` and sends them as WhatsApp documents. Example: ask for a portfolio and the bot can create `index.html`, `styles.css`, and `script.js`, send those files, then reply with a short "I've finished" recap.
+
+`web_search` uses the LangSearch Web Search API. Set `LANGSEARCH_API_KEY` in `.env`. The bot can look up live information, then answer with source URLs.
 
 ## Scripts
 

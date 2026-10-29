@@ -1,0 +1,44 @@
+{
+  "enabled": true,
+  "definition": {
+    "type": "function",
+    "function": {
+      "name": "web_search",
+      "description": "Search the web with LangSearch and return source-backed results. Use this for current events, facts you are unsure about, documentation, research, or anything that needs live information. Always cite source URLs in your answer.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Non-empty natural-language search query"
+          },
+          "count": {
+            "type": "integer",
+            "description": "Number of results to request, from 1 to 50. Default 5."
+          },
+          "freshness": {
+            "type": "string",
+            "description": "Date filter: noLimit, oneDay, oneWeek, oneMonth, oneYear, YYYY-MM-DD, or YYYY-MM-DD..YYYY-MM-DD"
+          },
+          "includeDomains": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Optional list of domains to restrict results to, for example wikipedia.org"
+          },
+          "excludeDomains": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Optional list of domains to exclude"
+          }
+        },
+        "required": ["query"]
+      }
+    }
+  },
+  "options": {
+    "count": 5,
+    "freshness": "noLimit",
+    "maxCharacters": 3000,
+    "timeoutMs": 30000
+  }
+}
