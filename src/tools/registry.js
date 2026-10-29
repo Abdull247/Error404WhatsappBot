@@ -21,6 +21,14 @@ export function getToolHandler(name) {
   return tools.get(name)?.handler ?? null;
 }
 
+export function getToolOptions(name) {
+  return tools.get(name)?.options ?? {};
+}
+
+export function isSlowTool(name) {
+  return Boolean(tools.get(name)?.options?.slow);
+}
+
 export function listRegisteredTools() {
   return [...tools.keys()];
 }

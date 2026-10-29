@@ -25,8 +25,8 @@ const defaults = {
   },
   tools: {
     enabled: true,
-    allow: ['write_file', 'web_search', 'get_datetime'],
-    maxRounds: 6,
+    allow: ['write_file', 'web_search', 'get_datetime', 'sandbox'],
+    maxRounds: 10,
   },
 };
 

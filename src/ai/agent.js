@@ -1,7 +1,9 @@
 import { appConfig } from '../config/load-config.js';
 import { loadContext, saveTurn } from '../memory/store.js';
 import { executeToolCall, loadTools } from '../tools/index.js';
+import { isSlowTool } from '../tools/registry.js';
 import { logger } from '../utils/logger.js';
+import { reactToMessage } from '../whatsapp/react.js';
 import { createChatCompletion } from './client.js';
 import { isGreeting } from './greetings.js';
 import { buildMessages } from './prompt.js';
@@ -37,7 +39,7 @@ function defaultRecap(artifacts) {
   return `I've finished. I created ${names.join(', ')} and sent them to you.`;
 }
 
-export async function generateReply({ jid, text, pushName }) {
+export async function generateReply({ jid, text, pushName, sock, message }) {
   let history = [];
   let memories = [];
 
@@ -70,30 +72,42 @@ export async function generateReply({ jid, text, pushName }) {
   const artifacts = [];
   const maxRounds = appConfig.tools.maxRounds || 6;
   let lastMessage = null;
+  let reactedBusy = false;
+  const toolContext = { jid, pushName, text, sock, message };
 
-  for (let round = 0; round < maxRounds; round += 1) {
-    const toolChoice = greeting && datetimeEnabled && round === 0
-      ? { type: 'function', function: { name: 'get_datetime' } }
-      : undefined;
-    const completion = await createChatCompletion({ messages, tools, toolChoice });
-    lastMessage = completion?.choices?.[0]?.message || null;
-    if (!lastMessage) break;
+  try {
+    for (let round = 0; round < maxRounds; round += 1) {
+      const toolChoice = greeting && datetimeEnabled && round === 0
+        ? { type: 'function', function: { name: 'get_datetime' } }
+        : undefined;
+      const completion = await createChatCompletion({ messages, tools, toolChoice });
+      lastMessage = completion?.choices?.[0]?.message || null;
+      if (!lastMessage) break;
 
-    const toolCalls = getToolCalls(lastMessage);
-    messages.push({
-      role: 'assistant',
-      content: lastMessage.content ?? null,
-      tool_calls: toolCalls.length ? toolCalls : undefined,
-    });
+      const toolCalls = getToolCalls(lastMessage);
+      messages.push({
+        role: 'assistant',
+        content: lastMessage.content ?? null,
+        tool_calls: toolCalls.length ? toolCalls : undefined,
+      });
 
-    if (!toolCalls.length) break;
+      if (!toolCalls.length) break;
 
-    for (const toolCall of toolCalls) {
-      const result = await executeToolCall(toolCall, { jid, pushName, text });
-      messages.push(result.message);
-      if (result.artifacts?.length) {
-        artifacts.push(...result.artifacts);
+      for (const toolCall of toolCalls) {
+        if (!reactedBusy && isSlowTool(toolCall?.function?.name)) {
+          await reactToMessage(sock, message, '\u231B');
+          reactedBusy = true;
+        }
+        const result = await executeToolCall(toolCall, toolContext);
+        messages.push(result.message);
+        if (result.artifacts?.length) {
+          artifacts.push(...result.artifacts);
+        }
       }
+    }
+  } finally {
+    if (reactedBusy) {
+      await reactToMessage(sock, message, '\u2705');
     }
   }
 

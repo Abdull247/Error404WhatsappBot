@@ -5,13 +5,21 @@ export async function sendArtifacts(sock, jid, artifacts = [], quoted) {
   for (const file of artifacts) {
     if (!file?.ok || !file.path || !fs.existsSync(file.path)) continue;
     try {
+      const payload = (file.mimetype || '').startsWith('image/') && file.mimetype !== 'image/svg+xml'
+        ? {
+            image: fs.readFileSync(file.path),
+            fileName: file.filename,
+            mimetype: file.mimetype,
+            caption: file.filename,
+          }
+        : {
+            document: fs.readFileSync(file.path),
+            fileName: file.filename,
+            mimetype: file.mimetype || 'text/plain',
+          };
       await sock.sendMessage(
         jid,
-        {
-          document: fs.readFileSync(file.path),
-          fileName: file.filename,
-          mimetype: file.mimetype || 'text/plain',
-        },
+        payload,
         quoted ? { quoted } : undefined,
       );
       logger.info({ jid, filename: file.filename }, 'sent generated file');

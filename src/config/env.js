@@ -57,7 +57,13 @@ export const env = {
   LANGSEARCH_API_KEY: optional('LANGSEARCH_API_KEY', ''),
   LANGSEARCH_BASE_URL: optional('LANGSEARCH_BASE_URL', 'https://api.langsearch.com/v1/web-search').replace(/\/+$/, ''),
   DEFAULT_TIMEZONE: optional('DEFAULT_TIMEZONE', 'UTC'),
+  E2B_API_KEY: optional('E2B_API_KEY', ''),
+  E2B_TIMEOUT_MS: optionalInt('E2B_TIMEOUT_MS', 300000),
 };
+
+if (env.E2B_API_KEY && !process.env.E2B_API_KEY) {
+  process.env.E2B_API_KEY = env.E2B_API_KEY;
+}
 
 export function ensureSessionDir() {
   fs.mkdirSync(env.WHATSAPP_SESSION_DIR, { recursive: true });

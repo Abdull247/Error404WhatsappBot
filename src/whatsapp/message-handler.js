@@ -75,7 +75,7 @@ export async function handleIncomingMessage(sock, message) {
       logger.warn({ err: error, jid }, 'failed to persist user, continuing without memory write');
     });
 
-    const reply = await generateReply({ jid, text, pushName });
+    const reply = await generateReply({ jid, text, pushName, sock, message });
     const artifacts = reply.artifacts || [];
     const replyText = typeof reply === 'string' ? reply : reply.text;
 

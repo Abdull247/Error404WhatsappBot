@@ -1,0 +1,103 @@
+{
+  "enabled": true,
+  "definition": {
+    "type": "function",
+    "function": {
+      "name": "sandbox",
+      "description": "Run code and commands in a temporary isolated E2B Linux sandbox for this WhatsApp user. One sandbox is reused across turns until you kill it or it times out. Call this for executing Python/JS/TS/R/Java/Bash, installing packages, reading/writing files, starting servers, or exposing a public URL. Pick an action. Auto-creates a sandbox when needed.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "Sub-tool to run. create: start a new sandbox. connect: reconnect by sandboxId. info: sandbox details. kill: destroy it. set_timeout: extend lifetime. run_code: execute code (python, javascript, typescript, r, java, bash). run_command: shell command. list_processes: running processes. kill_process: kill by pid. files_list, files_read, files_write, files_mkdir, files_remove, files_rename, files_exists, files_info: filesystem. download: copy a sandbox file and send it on WhatsApp. get_url: public https URL for a port. install: install packages with pip or npm."
+          },
+          "sandboxId": {
+            "type": "string",
+            "description": "Existing sandbox id. Used by connect, or to reuse a known sandbox."
+          },
+          "template": {
+            "type": "string",
+            "description": "Optional E2B template name or id when creating a sandbox. Default is the code-interpreter template."
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "description": "Sandbox lifetime in milliseconds from now. Default 300000 (5 minutes)."
+          },
+          "code": {
+            "type": "string",
+            "description": "Source to execute for run_code."
+          },
+          "language": {
+            "type": "string",
+            "description": "Language for run_code: python, javascript, typescript, r, java, bash. Default python."
+          },
+          "command": {
+            "type": "string",
+            "description": "Shell command for run_command, for example ls -la or python3 -m http.server 3000"
+          },
+          "cwd": {
+            "type": "string",
+            "description": "Working directory for run_command or run_code context."
+          },
+          "background": {
+            "type": "boolean",
+            "description": "If true, start run_command in the background and return the pid."
+          },
+          "pid": {
+            "type": "integer",
+            "description": "Process id for kill_process."
+          },
+          "path": {
+            "type": "string",
+            "description": "Absolute sandbox path for filesystem actions. Default /home/user."
+          },
+          "newPath": {
+            "type": "string",
+            "description": "Destination path for files_rename."
+          },
+          "content": {
+            "type": "string",
+            "description": "File contents for files_write."
+          },
+          "files": {
+            "type": "array",
+            "description": "Multiple files for files_write. Each item has path and content.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": { "type": "string" },
+                "content": { "type": "string" }
+              },
+              "required": ["path", "content"]
+            }
+          },
+          "depth": {
+            "type": "integer",
+            "description": "Directory listing depth for files_list. Default 1."
+          },
+          "port": {
+            "type": "integer",
+            "description": "Sandbox port to expose with get_url, for example 3000."
+          },
+          "packages": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Package names for install, for example numpy, pandas, axios."
+          },
+          "manager": {
+            "type": "string",
+            "description": "Package manager for install: pip or npm. Default pip."
+          }
+        },
+        "required": ["action"]
+      }
+    }
+  },
+  "options": {
+    "slow": true,
+    "defaultTimeoutMs": 300000,
+    "commandTimeoutMs": 60000,
+    "maxOutputChars": 8000
+  }
+}

@@ -24,6 +24,7 @@ src/
 - `migrations/` holds SQL files applied on startup.
 - `src/tools/catalog/` holds one folder per tool (`config.json` + `handler.js`).
 - `write_file` can create `.html`, `.css`, `.js`, `.txt`, `.json`, and `.md` files, send them on WhatsApp, then send a short recap.
+- `sandbox` runs code and commands in a temporary E2B Linux VM. One sandbox is reused per WhatsApp user until it is killed or times out.
 
 ## Setup
 
@@ -33,6 +34,7 @@ Copy `.env.example` to `.env` and fill in:
 - `AI_API_KEY`
 - `DATABASE_URL`
 - `LANGSEARCH_API_KEY`
+- `E2B_API_KEY`
 
 Edit `config.json` for model, temperature, and system instruction.
 
@@ -71,6 +73,8 @@ Tool calling is enabled in `config.json`. Each tool lives in `src/tools/catalog/
 `web_search` uses the LangSearch Web Search API. Set `LANGSEARCH_API_KEY` in `.env`. The bot can look up live information, then answer with source URLs.
 
 `get_datetime` returns the user's local date and time. Simple greetings use `query=greeting` (timezone, date, local time, time of day). Use `query=full` for weekdays, week number, and other calendar details. The bot must not guess the time.
+
+`sandbox` uses the E2B code-interpreter SDK. Set `E2B_API_KEY` in `.env`. The model calls it with an `action` such as `run_code`, `run_command`, `files_write`, `install`, `get_url`, or `kill`. Long sandbox work reacts to the user message with an hourglass, then a check mark when finished. Charts and downloaded files are sent on WhatsApp.
 
 ## Scripts
 
