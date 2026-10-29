@@ -1,6 +1,8 @@
 import { ensureSessionDir, ensureToolsOutputDir } from './config/env.js';
 import { appConfig } from './config/load-config.js';
 import { runMigrations } from './db/migrate.js';
+import { loadCommands } from './commands/index.js';
+import { loadPersonalities } from './personalities/load.js';
 import { initTools } from './tools/index.js';
 import { logger } from './utils/logger.js';
 import { createWhatsAppSocket } from './whatsapp/auth.js';
@@ -10,7 +12,12 @@ async function main() {
   ensureSessionDir();
   ensureToolsOutputDir();
   await initTools();
-  logger.info({ model: appConfig.ai.model, bot: appConfig.bot.name }, 'starting WhatsApp AI bot');
+  loadCommands();
+  const personalities = loadPersonalities();
+  logger.info(
+    { model: appConfig.ai.model, bot: appConfig.bot.name, personalities: personalities.map((item) => item.id) },
+    'starting WhatsApp AI bot',
+  );
   await runMigrations();
   await createWhatsAppSocket({ onMessage: handleIncomingMessage });
 }

@@ -11,11 +11,11 @@ export class AiClientError extends Error {
   }
 }
 
-export async function createChatCompletion({ messages, tools, toolChoice }) {
+export async function createChatCompletion({ messages, tools, toolChoice, temperature }) {
   const payload = {
     model: appConfig.ai.model,
     messages,
-    temperature: appConfig.ai.temperature,
+    temperature: Number.isFinite(temperature) ? temperature : appConfig.ai.temperature,
     max_tokens: appConfig.ai.maxTokens,
     top_p: appConfig.ai.topP,
     stream: Boolean(appConfig.ai.stream),

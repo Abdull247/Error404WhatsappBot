@@ -1,5 +1,6 @@
 import { appConfig } from '../config/load-config.js';
 import { generateReply } from '../ai/agent.js';
+import { tryHandleCommand } from '../commands/index.js';
 import { rememberUser } from '../memory/store.js';
 import { logger } from '../utils/logger.js';
 import { extractText, isGroupJid, isStatusJid, shouldIgnore, unwrapMessageContent } from './filters.js';
@@ -95,7 +96,10 @@ export async function handleIncomingMessage(sock, message) {
       });
     }
 
-    const reply = await generateReply({ jid, text, pushName, sock, message });
+    const commandReply = await tryHandleCommand({ text, jid, pushName, sock, message });
+    const reply = commandReply == null
+      ? await generateReply({ jid, text, pushName, sock, message })
+      : { text: commandReply, artifacts: [] };
     const artifacts = reply.artifacts || [];
     const replyText = typeof reply === 'string' ? reply : reply.text;
 

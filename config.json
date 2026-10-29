@@ -15,7 +15,9 @@
     "typingIndicator": true,
     "markMessagesRead": true,
     "ownerNumbers": [],
-    "logGroupMessages": true
+    "logGroupMessages": true,
+    "commandPrefix": ".",
+    "defaultPersonality": "helpfulness"
   },
   "memory": {
     "enabled": true,

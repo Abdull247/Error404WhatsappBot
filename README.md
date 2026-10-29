@@ -23,6 +23,7 @@ src/
 - `.env` holds secrets and connection URLs.
 - `migrations/` holds SQL files applied on startup.
 - `src/tools/catalog/` holds one folder per tool (`config.json` + `handler.js`).
+- `personalities/` holds one JSON file per AI personality.
 - `write_file` can create `.html`, `.css`, `.js`, `.txt`, `.json`, and `.md` files, send them on WhatsApp, then send a short recap.
 - `sandbox` runs code and commands in a temporary E2B Linux VM. One sandbox is reused per WhatsApp user until it is killed or times out.
 
@@ -77,6 +78,18 @@ Tool calling is enabled in `config.json`. Each tool lives in `src/tools/catalog/
 `sandbox` uses the E2B code-interpreter SDK. Set `E2B_API_KEY` in `.env`. The model calls it with an `action` such as `run_code`, `run_command`, `files_write`, `install`, `get_url`, or `kill`. Long sandbox work reacts to the user message with an hourglass, then a check mark when finished. Charts and downloaded files are sent on WhatsApp.
 
 `list_chats` and `summarize_chat` are owner-only. The bot logs DMs and group messages it sees (even when `ignoreGroups` is true and it does not reply). Ask it to list chats, then summarize a group or pull out facts, people, decisions, and action items. Set `OWNER_NUMBERS` in `.env` (comma-separated, with country code) so only you can use these tools. Summarize reacts with an hourglass, then a check mark.
+
+## Commands
+
+Messages that start with `.` are handled before the AI.
+
+```text
+.menu
+.personalities
+.personalities - Helpfulness
+```
+
+`.menu` lists commands. `.personalities` lists the JSON configs in `personalities/`. `.personalities - Helpfulness` switches this chat to that personality. The choice is stored per user/chat.
 
 ## Scripts
 

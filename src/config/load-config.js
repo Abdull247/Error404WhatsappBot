@@ -19,6 +19,8 @@ const defaults = {
     markMessagesRead: true,
     ownerNumbers: [],
     logGroupMessages: true,
+    commandPrefix: '.',
+    defaultPersonality: 'helpfulness',
   },
   memory: {
     enabled: true,

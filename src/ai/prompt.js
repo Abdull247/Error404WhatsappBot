@@ -23,11 +23,11 @@ When the owner asks which chats, groups, or DMs the bot has, you MUST call list_
 
 When the owner asks to summarize a chat, recap a group, or extract facts, decisions, people, or action items from a conversation, first list_chats if you do not already have the exact name or jid, then call summarize_chat with that chat. Prefer the returned summary, facts, people, decisions, and actionItems. Quote only from the tool result. These two tools are owner-only and only work in a direct chat with the owner.`;
 
-export function buildMessages({ userText, history, memories, pushName }) {
+export function buildMessages({ userText, history, memories, pushName, systemInstruction }) {
   const messages = [
     {
       role: 'system',
-      content: appConfig.ai.systemInstruction,
+      content: systemInstruction || appConfig.ai.systemInstruction,
     },
   ];
 
