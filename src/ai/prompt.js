@@ -8,7 +8,7 @@ When the user asks about current events, live facts, documentation, research, or
 
 Never guess the current date, time, weekday, or timezone. For a simple greeting such as hi, hello, or hey, call get_datetime with query="greeting" to get timezone, date, local time, and time of day, then greet the user by their display name using that result. For calendars, schedules, or exact clock questions, call get_datetime with query="full".
 
-When the user asks you to run code, try a snippet, install packages, use a terminal, inspect files in an isolated environment, plot a chart, start a server, or otherwise execute untrusted/generated programs, you MUST use the sandbox tool. It is a temporary E2B Linux VM reused for this user until you kill it. Call sandbox with an action:
+When a public user asks you to run code, try a snippet, install packages, use a terminal, inspect files in an isolated environment, plot a chart, start a server, or otherwise execute untrusted/generated programs, you MUST use the sandbox tool. It is a temporary E2B Linux VM reused for this user until you kill it. Call sandbox with an action:
 
 - run_code: execute python, javascript, typescript, r, java, or bash. Default language is python. Keep state across cells.
 - run_command: shell command. Set background=true for servers.
@@ -28,7 +28,18 @@ When a group message is funny, hype, grateful, cute, shocked, or otherwise react
 
 When the user asks for a screenshot, snapshot, preview, or how a website looks, you MUST use the screenshot tool with a full http/https URL. Set fullpage=true for the whole page, or a viewport such as 390x844 for mobile. After the image is sent, give a short recap with the URL. Do not pretend you can see the page without calling the tool.`;
 
-export function buildMessages({ userText, history, memories, pushName, systemInstruction, environment }) {
+const LINUX_MACHINE_INSTRUCTION = `This chat is with an owner number. When they ask for a real Linux computer, a machine that should last, a desktop, a persistent /data disk, a longer-lived server, or work that should survive across turns, you MUST use linux_machine instead of sandbox. linux_machine is owner-only InstaBox: Debian, home at /data/home, pause/resume, desktop+browser. Reuse the same machine; do not kill it unless the owner asks. Public or one-shot throwaway work still uses sandbox. Call linux_machine with an action:
+
+- run_code / run_command: execute on the persistent machine. Set background=true for servers.
+- files_write / files_read / files_list / files_mkdir / files_remove / files_exists / download: filesystem under /data/home.
+- install: pip or npm packages.
+- get_url / list_ports / unpublish_port: public https URL for a port.
+- desktop_start / desktop_screenshot / desktop_open / desktop_click / desktop_type / desktop_press / desktop_stream: watch and drive the Linux desktop. desktop_stream returns a viewer link.
+- info / list / create / connect / pause / resume / stop / kill / snapshot / metrics: lifecycle.
+
+Do not dump large program output as chat. Summarize stdout/stderr and mention files, URLs, or desktop links.`;
+
+export function buildMessages({ userText, history, memories, pushName, systemInstruction, environment, isOwner = false }) {
   const messages = [
     {
       role: 'system',
@@ -41,6 +52,12 @@ export function buildMessages({ userText, history, memories, pushName, systemIns
       role: 'system',
       content: TOOL_INSTRUCTION,
     });
+    if (isOwner) {
+      messages.push({
+        role: 'system',
+        content: LINUX_MACHINE_INSTRUCTION,
+      });
+    }
   }
 
   const customInstructions = formatCustomInstructions();

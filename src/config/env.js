@@ -87,6 +87,10 @@ export const env = {
   DEFAULT_TIMEZONE: optional('DEFAULT_TIMEZONE', 'UTC'),
   E2B_API_KEY: optional('E2B_API_KEY', ''),
   E2B_TIMEOUT_MS: optionalInt('E2B_TIMEOUT_MS', 300000),
+  INSTABOX_API_KEY: optional('INSTABOX_API_KEY', ''),
+  INSTABOX_API_URL: optional('INSTABOX_API_URL', 'https://api.instabox.sh').replace(/\/+$/, ''),
+  INSTABOX_TEMPLATE: optional('INSTABOX_TEMPLATE', 'agent-browser'),
+  INSTABOX_MACHINE_ID: optional('INSTABOX_MACHINE_ID', ''),
   SCREENSHOTLAYER_API_KEY: optional('SCREENSHOTLAYER_API_KEY', '36ba2cccc19800bc5f098110779c083d'),
   SCREENSHOTLAYER_SECRET: optional('SCREENSHOTLAYER_SECRET', ''),
   SCREENSHOTLAYER_BASE_URL: optional(
@@ -97,6 +101,14 @@ export const env = {
 
 if (env.E2B_API_KEY && !process.env.E2B_API_KEY) {
   process.env.E2B_API_KEY = env.E2B_API_KEY;
+}
+
+if (env.INSTABOX_API_KEY && !process.env.INSTABOX_API_KEY) {
+  process.env.INSTABOX_API_KEY = env.INSTABOX_API_KEY;
+}
+
+if (env.INSTABOX_API_URL && !process.env.INSTABOX_API_URL) {
+  process.env.INSTABOX_API_URL = env.INSTABOX_API_URL;
 }
 
 export function ensureSessionDir() {

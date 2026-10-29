@@ -7,6 +7,7 @@ import { isSlowTool } from '../tools/registry.js';
 import { logger } from '../utils/logger.js';
 import { BUSY_REACTIONS, reactToMessage } from '../whatsapp/react.js';
 import { formatEnvironmentPrompt } from '../whatsapp/group.js';
+import { isOwnerJid } from '../whatsapp/owner.js';
 import { createChatCompletion } from './client.js';
 import { isGreeting } from './greetings.js';
 import { buildMessages } from './prompt.js';
@@ -76,6 +77,7 @@ export async function generateReply({
     logger.warn({ err: error, jid }, 'failed to load chat personality');
   }
 
+  const owner = isOwnerJid(jid, sock);
   const messages = buildMessages({
     userText: text,
     history: historyForPrompt,
@@ -86,9 +88,14 @@ export async function generateReply({
       ...environment,
       prompt: formatEnvironmentPrompt(environment),
     },
+    isOwner: owner,
   });
 
-  const tools = loadTools();
+  const tools = loadTools({
+    jid,
+    sock,
+    isOwner: owner,
+  });
   const greeting = isGreeting(text);
   const datetimeEnabled = tools.some((tool) => tool.function?.name === 'get_datetime');
 

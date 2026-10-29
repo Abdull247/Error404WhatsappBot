@@ -7,13 +7,16 @@ export function registerTool(definition, handler, options = {}) {
   tools.set(definition.function.name, { definition, handler, options });
 }
 
-export function getEnabledTools(allowList = []) {
+export function getEnabledTools(allowList = [], context = {}) {
   const all = [...tools.values()];
-  if (!allowList.length) {
-    return all.map((tool) => tool.definition);
-  }
-  return all
-    .filter((tool) => allowList.includes(tool.definition.function.name))
+  const allowed = allowList.length
+    ? all.filter((tool) => allowList.includes(tool.definition.function.name))
+    : all;
+  return allowed
+    .filter((tool) => {
+      if (!tool.options?.ownerOnly) return true;
+      return Boolean(context.isOwner);
+    })
     .map((tool) => tool.definition);
 }
 

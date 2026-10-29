@@ -15,9 +15,9 @@ export async function initTools() {
   logger.info({ tools: catalog.map((tool) => tool.name) }, 'tools loaded');
 }
 
-export function loadTools() {
+export function loadTools(context = {}) {
   if (!appConfig.tools.enabled) return [];
-  return getEnabledTools(appConfig.tools.allow);
+  return getEnabledTools(appConfig.tools.allow, context);
 }
 
 export { executeToolCall } from './executor.js';

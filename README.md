@@ -29,6 +29,7 @@ src/
 - `personalities/` holds one JSON file per AI personality.
 - `write_file` can create `.html`, `.css`, `.js`, `.txt`, `.json`, and `.md` files, send them on WhatsApp, then send a short recap.
 - `sandbox` runs code and commands in a temporary E2B Linux VM. One sandbox is reused per WhatsApp user until it is killed or times out.
+- `linux_machine` is an owner-only persistent InstaBox Linux computer (Debian, `/data` disk, optional desktop). Public and one-shot work still uses `sandbox`.
 
 ## Setup
 
@@ -39,6 +40,7 @@ Copy `.env.example` to `.env` and fill in:
 - `DATABASE_URL`
 - `LANGSEARCH_API_KEY`
 - `E2B_API_KEY`
+- `INSTABOX_API_KEY` (owner-only persistent Linux machine)
 - `SCREENSHOTLAYER_API_KEY`
 
 Edit `config.json` for model, temperature, and system instruction.
@@ -87,7 +89,9 @@ Tool calling is enabled in `config.json`. Each tool lives in `src/tools/catalog/
 
 `get_datetime` returns the user's local date and time. Simple greetings use `query=greeting` (timezone, date, local time, time of day). Use `query=full` for weekdays, week number, and other calendar details. The bot must not guess the time.
 
-`sandbox` uses the E2B code-interpreter SDK. Set `E2B_API_KEY` in `.env`. The model calls it with an `action` such as `run_code`, `run_command`, `files_write`, `install`, `get_url`, or `kill`. Long sandbox work reacts to the user message with an hourglass, then a check mark when finished. Charts and downloaded files are sent on WhatsApp.
+`sandbox` uses the E2B code-interpreter SDK. Set `E2B_API_KEY` in `.env`. The model calls it with an `action` such as `run_code`, `run_command`, `files_write`, `install`, `get_url`, or `kill`. Long sandbox work reacts to the user message with an hourglass, then a check mark when finished. Charts and downloaded files are sent on WhatsApp. Use this for public users and one-shot throwaway runs.
+
+`linux_machine` uses the InstaBox SDK (`@insforge/instabox-sdk`). Set `INSTABOX_API_KEY` and optionally `INSTABOX_API_URL` (default `https://api.instabox.sh`), `INSTABOX_TEMPLATE` (default `agent-browser`), and `INSTABOX_MACHINE_ID` to pin an existing box. Owner numbers only (`OWNER_NUMBERS`); everyone else keeps using `sandbox`. The machine is persistent: `/data/home` survives pause/stop, and the same box is reused across turns and bot restarts (it reconnects by listing your InstaBox machines). Actions include `run_command`, `run_code`, filesystem helpers, `get_url` (publish a port), `pause` / `resume` / `stop`, desktop control (`desktop_start`, `desktop_screenshot`, `desktop_stream`), and `snapshot`.
 
 `list_chats` and `summarize_chat` are owner-only. The bot logs DMs and group messages it sees (even when `ignoreGroups` is true and it does not reply). Ask it to list chats, then summarize a group or pull out facts, people, decisions, and action items. Set `OWNER_NUMBERS` in `.env` (comma-separated, with country code) so only you can use these tools. Summarize reacts with an hourglass, then a check mark.
 
@@ -289,6 +293,10 @@ Optional tools:
 ```text
 LANGSEARCH_API_KEY
 E2B_API_KEY
+INSTABOX_API_KEY
+INSTABOX_API_URL
+INSTABOX_TEMPLATE
+INSTABOX_MACHINE_ID
 SCREENSHOTLAYER_API_KEY
 SCREENSHOTLAYER_SECRET
 ```
@@ -301,6 +309,9 @@ CONFIG_PATH=./config.json
 DEFAULT_TIMEZONE=Africa/Lagos
 AI_TIMEOUT_MS=60000
 E2B_TIMEOUT_MS=300000
+INSTABOX_API_URL=https://api.instabox.sh
+INSTABOX_TEMPLATE=agent-browser
+INSTABOX_MACHINE_ID=
 WHATSAPP_MAX_STALE_MS=600000
 ```
 

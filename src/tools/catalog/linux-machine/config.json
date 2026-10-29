@@ -1,0 +1,168 @@
+{
+  "enabled": true,
+  "definition": {
+    "type": "function",
+    "function": {
+      "name": "linux_machine",
+      "description": "Owner-only persistent InstaBox Linux computer (Firecracker VM with /data disk, Debian, desktop+browser on agent-browser). Reused across turns and bot restarts. Use this instead of sandbox when the owner needs work that should last (projects, servers, desktop, files on /data). sandbox/E2B stays for public users and one-shot throwaway runs. Auto-creates or resumes the owner's machine. Home is /data/home.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "Sub-tool to run. create: start a new machine. connect: attach by machineId. info: details. list: list owner machines. kill: delete it. pause: suspend keeping memory. resume: wake it. stop: shut down keeping /data. set_auto_suspend: idle pause ms (0 off on paid plans). run_code: execute python/javascript/typescript/bash. run_command: shell. list_processes / kill_process. files_list, files_read, files_write, files_mkdir, files_remove, files_exists: filesystem under /data/home. download: send a file on WhatsApp. get_url: publish a port as public https. unpublish_port / list_ports. install: pip or npm. desktop_start, desktop_status, desktop_screenshot, desktop_open, desktop_click, desktop_type, desktop_press, desktop_scroll, desktop_move, desktop_stream, desktop_revoke. snapshot. metrics."
+          },
+          "machineId": {
+            "type": "string",
+            "description": "Existing InstaBox machine id (m_...). Used by connect, kill, or to reuse a known machine."
+          },
+          "sandboxId": {
+            "type": "string",
+            "description": "Alias of machineId."
+          },
+          "template": {
+            "type": "string",
+            "description": "Template when creating: agent-browser (desktop+Chromium, default), universal, ci. Free plan allows agent-browser or ci."
+          },
+          "name": {
+            "type": "string",
+            "description": "Optional machine name. Lowercase letters, digits, and hyphens."
+          },
+          "autoSuspendMs": {
+            "type": "integer",
+            "description": "Idle pause in milliseconds. Paid plans: 5-30 minutes or 0 to disable. Free plan is fixed at 30 minutes."
+          },
+          "code": {
+            "type": "string",
+            "description": "Source to execute for run_code."
+          },
+          "language": {
+            "type": "string",
+            "description": "Language for run_code: python, javascript, typescript, bash. Default python."
+          },
+          "command": {
+            "type": "string",
+            "description": "Shell command for run_command."
+          },
+          "cwd": {
+            "type": "string",
+            "description": "Working directory. Default /data/home."
+          },
+          "background": {
+            "type": "boolean",
+            "description": "If true, start run_command detached and return the pid."
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "description": "Command timeout in milliseconds. Default 120000, max 600000."
+          },
+          "pid": {
+            "type": "integer",
+            "description": "Process id for kill_process."
+          },
+          "path": {
+            "type": "string",
+            "description": "Absolute path for filesystem actions. Default /data/home."
+          },
+          "content": {
+            "type": "string",
+            "description": "File contents for files_write."
+          },
+          "files": {
+            "type": "array",
+            "description": "Multiple files for files_write. Each item has path and content.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": { "type": "string" },
+                "content": { "type": "string" }
+              },
+              "required": ["path", "content"]
+            }
+          },
+          "port": {
+            "type": "integer",
+            "description": "Machine port to publish with get_url, for example 3000."
+          },
+          "portName": {
+            "type": "string",
+            "description": "Display name when publishing a port."
+          },
+          "packages": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Package names for install."
+          },
+          "manager": {
+            "type": "string",
+            "description": "Package manager for install: pip or npm. Default pip."
+          },
+          "url": {
+            "type": "string",
+            "description": "http(s) URL for desktop_open."
+          },
+          "x": {
+            "type": "integer",
+            "description": "X pixel for desktop_click or desktop_move."
+          },
+          "y": {
+            "type": "integer",
+            "description": "Y pixel for desktop_click or desktop_move."
+          },
+          "button": {
+            "type": "string",
+            "description": "Mouse button for desktop_click: left, right, middle."
+          },
+          "double": {
+            "type": "boolean",
+            "description": "Double-click for desktop_click."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text to type for desktop_type."
+          },
+          "keys": {
+            "type": "string",
+            "description": "Key or chord for desktop_press, for example Enter or ctrl+l."
+          },
+          "direction": {
+            "type": "string",
+            "description": "Scroll direction: up, down, left, right."
+          },
+          "amount": {
+            "type": "integer",
+            "description": "Scroll notches. Default 3."
+          },
+          "width": {
+            "type": "integer",
+            "description": "Desktop width for desktop_start. Default 1280."
+          },
+          "height": {
+            "type": "integer",
+            "description": "Desktop height for desktop_start. Default 800."
+          },
+          "viewOnly": {
+            "type": "boolean",
+            "description": "desktop_stream view-only (default true). false allows control."
+          },
+          "ttlSeconds": {
+            "type": "integer",
+            "description": "desktop_stream link lifetime, 60 to 86400. Default 3600."
+          },
+          "snapshotName": {
+            "type": "string",
+            "description": "Name for snapshot."
+          }
+        },
+        "required": ["action"]
+      }
+    }
+  },
+  "options": {
+    "slow": true,
+    "ownerOnly": true,
+    "commandTimeoutMs": 120000,
+    "maxOutputChars": 8000,
+    "home": "/data/home"
+  }
+}
