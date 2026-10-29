@@ -3,6 +3,6 @@ const GREETING_RE = /^(hi|hii+|hello|hey|yo|hiya|howdy|good\s+(morning|afternoon
 export function isGreeting(text) {
   const value = String(text || '').trim();
   if (!value) return false;
-  if (value.length > 48) return false;
+  if (value.length > 64) return false;
   return GREETING_RE.test(value);
 }

@@ -26,7 +26,7 @@ function loadCommands() {
   logger.info({ commands: listCommands().map((item) => item.name) }, 'commands loaded');
 }
 
-export async function tryHandleCommand({ text, jid, pushName, sock, message }) {
+export async function tryHandleCommand({ text, jid, pushName, sock, message, environment }) {
   loadCommands();
   const parsed = parseCommand(text);
   if (!parsed) return null;
@@ -41,6 +41,7 @@ export async function tryHandleCommand({ text, jid, pushName, sock, message }) {
     pushName,
     sock,
     message,
+    environment,
     arg: parsed.arg,
     raw: parsed.raw,
   });

@@ -3,9 +3,10 @@ import { appConfig } from '../config/load-config.js';
 export function parseCommand(text) {
   const prefix = appConfig.bot.commandPrefix || '.';
   const raw = String(text || '').trim();
-  if (!raw.startsWith(prefix) || raw.length <= prefix.length) return null;
+  const normalized = raw.replace(/^(?:@\S+\s+)+/, '').trim();
+  if (!normalized.startsWith(prefix) || normalized.length <= prefix.length) return null;
 
-  const body = raw.slice(prefix.length).trim();
+  const body = normalized.slice(prefix.length).trim();
   if (!body) return null;
 
   const dash = body.match(/^([A-Za-z][\w-]*)\s+-\s+(.+)$/);

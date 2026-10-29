@@ -23,7 +23,7 @@ When the owner asks which chats, groups, or DMs the bot has, you MUST call list_
 
 When the owner asks to summarize a chat, recap a group, or extract facts, decisions, people, or action items from a conversation, first list_chats if you do not already have the exact name or jid, then call summarize_chat with that chat. Prefer the returned summary, facts, people, decisions, and actionItems. Quote only from the tool result. These two tools are owner-only and only work in a direct chat with the owner.`;
 
-export function buildMessages({ userText, history, memories, pushName, systemInstruction }) {
+export function buildMessages({ userText, history, memories, pushName, systemInstruction, environment }) {
   const messages = [
     {
       role: 'system',
@@ -46,7 +46,12 @@ export function buildMessages({ userText, history, memories, pushName, systemIns
     });
   }
 
-  if (pushName) {
+  if (environment?.prompt) {
+    messages.push({
+      role: 'system',
+      content: environment.prompt,
+    });
+  } else if (pushName) {
     messages.push({
       role: 'system',
       content: `The user's WhatsApp display name is ${pushName}.`,
@@ -55,16 +60,24 @@ export function buildMessages({ userText, history, memories, pushName, systemIns
 
   for (const item of history) {
     if (item.role === 'user' || item.role === 'assistant') {
+      const speaker = item.metadata?.pushName;
+      const content = environment?.isGroup && item.role === 'user' && speaker
+        ? `${speaker}: ${item.content}`
+        : item.content;
       messages.push({
         role: item.role,
-        content: item.content,
+        content,
       });
     }
   }
 
+  const userContent = environment?.isGroup && pushName
+    ? `${pushName}: ${userText}`
+    : userText;
+
   messages.push({
     role: 'user',
-    content: userText,
+    content: userContent,
   });
 
   return messages;

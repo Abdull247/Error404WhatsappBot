@@ -6,6 +6,7 @@ import { executeToolCall, loadTools } from '../tools/index.js';
 import { isSlowTool } from '../tools/registry.js';
 import { logger } from '../utils/logger.js';
 import { reactToMessage } from '../whatsapp/react.js';
+import { formatEnvironmentPrompt } from '../whatsapp/group.js';
 import { createChatCompletion } from './client.js';
 import { isGreeting } from './greetings.js';
 import { buildMessages } from './prompt.js';
@@ -41,7 +42,7 @@ function defaultRecap(artifacts) {
   return `I've finished. I created ${names.join(', ')} and sent them to you.`;
 }
 
-export async function generateReply({ jid, text, pushName, sock, message }) {
+export async function generateReply({ jid, text, pushName, sock, message, environment = null }) {
   let history = [];
   let memories = [];
 
@@ -54,7 +55,8 @@ export async function generateReply({ jid, text, pushName, sock, message }) {
   }
 
   const lastHistory = history[history.length - 1];
-  const historyForPrompt = lastHistory?.role === 'user' && lastHistory.content === text
+  const historyForPrompt = lastHistory?.role === 'user'
+    && (lastHistory.content === text || lastHistory.metadata?.replied)
     ? history.slice(0, -1)
     : history;
 
@@ -72,6 +74,10 @@ export async function generateReply({ jid, text, pushName, sock, message }) {
     memories,
     pushName,
     systemInstruction: formatPersonalityPrompt(personality),
+    environment: {
+      ...environment,
+      prompt: formatEnvironmentPrompt(environment),
+    },
   });
 
   const tools = loadTools();
@@ -89,7 +95,7 @@ export async function generateReply({ jid, text, pushName, sock, message }) {
   const maxRounds = appConfig.tools.maxRounds || 6;
   let lastMessage = null;
   let reactedBusy = false;
-  const toolContext = { jid, pushName, text, sock, message };
+  const toolContext = { jid, pushName, text, sock, message, environment };
 
   try {
     for (let round = 0; round < maxRounds; round += 1) {

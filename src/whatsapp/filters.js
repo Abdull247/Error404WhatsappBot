@@ -29,6 +29,22 @@ export function extractText(message) {
   return text;
 }
 
+export function stripBotMention(text, names = [], jids = []) {
+  let value = String(text || '');
+  for (const name of names) {
+    if (!name) continue;
+    const escaped = String(name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    value = value.replace(new RegExp(`(?:^|\\s)@${escaped}\\b`, 'gi'), ' ');
+  }
+  for (const jid of jids) {
+    const id = String(jid || '').split('@')[0].split(':')[0];
+    if (!id) continue;
+    const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    value = value.replace(new RegExp(`(?:^|\\s)@${escaped}\\b`, 'gi'), ' ');
+  }
+  return value.replace(/\s+/g, ' ').trim();
+}
+
 export function shouldIgnore(message) {
   if (!message) return true;
   if (message.key?.remoteJid === 'status@broadcast') return true;

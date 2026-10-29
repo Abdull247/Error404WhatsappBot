@@ -15,6 +15,7 @@ const defaults = {
     ignoreGroups: true,
     ignoreStatus: true,
     respondToMentionsInGroups: true,
+    respondToRepliesInGroups: true,
     typingIndicator: true,
     markMessagesRead: true,
     ownerNumbers: [],

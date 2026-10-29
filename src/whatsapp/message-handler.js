@@ -3,19 +3,19 @@ import { generateReply } from '../ai/agent.js';
 import { tryHandleCommand } from '../commands/index.js';
 import { rememberUser } from '../memory/store.js';
 import { logger } from '../utils/logger.js';
-import { extractText, isGroupJid, isStatusJid, shouldIgnore, unwrapMessageContent } from './filters.js';
+import { extractText, isGroupJid, isStatusJid, shouldIgnore, stripBotMention } from './filters.js';
+import {
+  botJids,
+  botNames,
+  buildChatEnvironment,
+  loadGroupDetails,
+  shouldReplyToMessage,
+} from './group.js';
 import { logIncomingMessage } from './log-message.js';
 import { markBotReply, wasRecentBotReply } from './outbound.js';
 import { sendArtifacts } from './send.js';
 
 const inflight = new Set();
-
-function mentionedBot(sock, message) {
-  const content = unwrapMessageContent(message);
-  const mentioned = content.extendedTextMessage?.contextInfo?.mentionedJid || [];
-  const botJid = sock.user?.id?.split(':')[0];
-  return Boolean(botJid && mentioned.some((id) => String(id).startsWith(botJid)));
-}
 
 async function showTyping(sock, jid) {
   if (!appConfig.bot.typingIndicator) return;
@@ -62,14 +62,20 @@ export async function handleIncomingMessage(sock, message) {
   const group = isGroupJid(jid);
   const fromMe = Boolean(message.key?.fromMe);
   const pushName = message.pushName || null;
-  const mentioned = mentionedBot(sock, message);
+  const addressing = shouldReplyToMessage(sock, message, { jid, text, fromMe, group });
+  const { shouldReply, mentioned, replyToBot, trigger } = addressing;
   const shouldLog = (!group || appConfig.bot.logGroupMessages !== false)
     && !(fromMe && wasRecentBotReply(jid));
-  const shouldReply = !fromMe && (!group || !appConfig.bot.ignoreGroups || mentioned);
 
   try {
     if (shouldLog) {
-      const logPromise = logIncomingMessage(sock, message, { text, pushName, replied: shouldReply });
+      const logPromise = logIncomingMessage(sock, message, {
+        text,
+        pushName,
+        replied: shouldReply,
+        mentioned,
+        replyToBot,
+      });
       if (shouldReply) {
         await logPromise;
       } else {
@@ -81,7 +87,25 @@ export async function handleIncomingMessage(sock, message) {
 
     if (!shouldReply) return;
 
-    logger.info({ jid, pushName, text }, 'incoming WhatsApp message');
+    const groupDetails = group ? await loadGroupDetails(sock, jid) : null;
+    const environment = buildChatEnvironment({
+      message,
+      jid,
+      pushName,
+      group,
+      mentioned,
+      replyToBot,
+      trigger,
+      groupDetails,
+    });
+    const promptText = group
+      ? (stripBotMention(text, botNames(sock), botJids(sock)) || text)
+      : text;
+
+    logger.info(
+      { jid, pushName, group, mentioned, replyToBot, trigger, text },
+      'incoming WhatsApp message',
+    );
     await showTyping(sock, jid);
 
     if (appConfig.bot.markMessagesRead) {
@@ -96,9 +120,23 @@ export async function handleIncomingMessage(sock, message) {
       });
     }
 
-    const commandReply = await tryHandleCommand({ text, jid, pushName, sock, message });
+    const commandReply = await tryHandleCommand({
+      text: promptText,
+      jid,
+      pushName,
+      sock,
+      message,
+      environment,
+    });
     const reply = commandReply == null
-      ? await generateReply({ jid, text, pushName, sock, message })
+      ? await generateReply({
+          jid,
+          text: promptText,
+          pushName,
+          sock,
+          message,
+          environment,
+        })
       : { text: commandReply, artifacts: [] };
     const artifacts = reply.artifacts || [];
     const replyText = typeof reply === 'string' ? reply : reply.text;
@@ -109,13 +147,13 @@ export async function handleIncomingMessage(sock, message) {
 
     markBotReply(jid);
     await sock.sendMessage(jid, { text: replyText }, { quoted: message });
-    logger.info({ jid, files: artifacts.length }, 'sent WhatsApp reply');
+    logger.info({ jid, files: artifacts.length, group }, 'sent WhatsApp reply');
   } catch (error) {
     logger.error({ err: error, jid }, 'failed to generate or send reply');
     try {
       await sock.sendMessage(jid, {
         text: 'Sorry, I ran into a problem handling that message.',
-      });
+      }, { quoted: message });
     } catch (sendError) {
       logger.error({ err: sendError, jid }, 'failed to send error reply');
     }

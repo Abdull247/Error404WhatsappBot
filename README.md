@@ -20,6 +20,7 @@ src/
 ```
 
 - `config.json` holds model name, system instruction, bot behavior, and memory settings.
+- In groups the bot stays quiet unless it is @mentioned or someone replies to one of its messages. Replies are quoted so the group can follow the thread. The AI is told it is in a group and gets the group name, description, and speaker.
 - `.env` holds secrets and connection URLs.
 - `migrations/` holds SQL files applied on startup.
 - `src/tools/catalog/` holds one folder per tool (`config.json` + `handler.js`).
@@ -38,6 +39,13 @@ Copy `.env.example` to `.env` and fill in:
 - `E2B_API_KEY`
 
 Edit `config.json` for model, temperature, and system instruction.
+
+Group chat:
+
+- `ignoreGroups: true` (default) means the bot does not answer every group message.
+- `respondToMentionsInGroups: true` answers when someone tags / @mentions the bot.
+- `respondToRepliesInGroups: true` answers when someone replies to the bot's own message.
+- Group replies quote the triggering message. The model receives group name, description, participant count, and who spoke.
 
 ```bash
 npm install

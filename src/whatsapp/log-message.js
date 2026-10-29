@@ -2,6 +2,7 @@ import { upsertChat } from '../db/repositories/chats.js';
 import { addMessage } from '../db/repositories/conversations.js';
 import { logger } from '../utils/logger.js';
 import { extractText, isGroupJid } from './filters.js';
+import { loadGroupDetails } from './group.js';
 import { getCurrentSocket } from './socket.js';
 
 const MAX_PREVIEW = 240;
@@ -24,9 +25,9 @@ export async function resolveChatName(sock, jid, fallbackName = null) {
   if (!client) return null;
 
   try {
-    if (isGroupJid(jid) && typeof client.groupMetadata === 'function') {
-      const meta = await client.groupMetadata(jid);
-      return meta?.subject || null;
+    if (isGroupJid(jid)) {
+      const meta = await loadGroupDetails(client, jid);
+      return meta?.name || null;
     }
   } catch (error) {
     logger.debug({ err: error, jid }, 'failed to load group metadata');
@@ -45,7 +46,13 @@ export async function resolveChatName(sock, jid, fallbackName = null) {
   return null;
 }
 
-export async function logIncomingMessage(sock, message, { text, pushName, replied = false } = {}) {
+export async function logIncomingMessage(sock, message, {
+  text,
+  pushName,
+  replied = false,
+  mentioned = false,
+  replyToBot = false,
+} = {}) {
   const jid = message?.key?.remoteJid;
   if (!jid) return;
 
@@ -54,7 +61,10 @@ export async function logIncomingMessage(sock, message, { text, pushName, replie
 
   const type = isGroupJid(jid) ? 'group' : 'dm';
   const sender = participantJid(message, jid);
-  const name = await resolveChatName(sock, jid, type === 'dm' ? pushName : null);
+  const groupDetails = type === 'group' ? await loadGroupDetails(sock, jid) : null;
+  const name = type === 'dm'
+    ? await resolveChatName(sock, jid, pushName)
+    : groupDetails?.name || await resolveChatName(sock, jid, null);
 
   try {
     await upsertChat({
@@ -66,6 +76,9 @@ export async function logIncomingMessage(sock, message, { text, pushName, replie
       metadata: {
         lastParticipant: sender,
         lastPushName: pushName || null,
+        mentioned,
+        replyToBot,
+        group: groupDetails || undefined,
       },
     });
   } catch (error) {
@@ -85,6 +98,8 @@ export async function logIncomingMessage(sock, message, { text, pushName, replie
         fromMe,
         messageId: message.key?.id || null,
         replied,
+        mentioned,
+        replyToBot,
         source: 'whatsapp',
       },
     });
