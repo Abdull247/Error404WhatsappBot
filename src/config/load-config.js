@@ -25,7 +25,7 @@ const defaults = {
   },
   tools: {
     enabled: true,
-    allow: ['write_file', 'web_search'],
+    allow: ['write_file', 'web_search', 'get_datetime'],
     maxRounds: 6,
   },
 };

@@ -3,6 +3,7 @@ import { loadContext, saveTurn } from '../memory/store.js';
 import { executeToolCall, loadTools } from '../tools/index.js';
 import { logger } from '../utils/logger.js';
 import { createChatCompletion } from './client.js';
+import { isGreeting } from './greetings.js';
 import { buildMessages } from './prompt.js';
 
 function extractText(message) {
@@ -56,12 +57,25 @@ export async function generateReply({ jid, text, pushName }) {
   });
 
   const tools = loadTools();
+  const greeting = isGreeting(text);
+  const datetimeEnabled = tools.some((tool) => tool.function?.name === 'get_datetime');
+
+  if (greeting && datetimeEnabled) {
+    messages.push({
+      role: 'system',
+      content: 'The user greeted you. Call get_datetime with query="greeting" now. Then greet them by display name or firstName using greeting, timeOfDay, date, and timezone. Do not guess the time.',
+    });
+  }
+
   const artifacts = [];
   const maxRounds = appConfig.tools.maxRounds || 6;
   let lastMessage = null;
 
   for (let round = 0; round < maxRounds; round += 1) {
-    const completion = await createChatCompletion({ messages, tools });
+    const toolChoice = greeting && datetimeEnabled && round === 0
+      ? { type: 'function', function: { name: 'get_datetime' } }
+      : undefined;
+    const completion = await createChatCompletion({ messages, tools, toolChoice });
     lastMessage = completion?.choices?.[0]?.message || null;
     if (!lastMessage) break;
 

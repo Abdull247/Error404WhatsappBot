@@ -70,6 +70,8 @@ Tool calling is enabled in `config.json`. Each tool lives in `src/tools/catalog/
 
 `web_search` uses the LangSearch Web Search API. Set `LANGSEARCH_API_KEY` in `.env`. The bot can look up live information, then answer with source URLs.
 
+`get_datetime` returns the user's local date and time. Simple greetings use `query=greeting` (timezone, date, local time, time of day). Use `query=full` for weekdays, week number, and other calendar details. The bot must not guess the time.
+
 ## Scripts
 
 ```bash

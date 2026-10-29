@@ -11,7 +11,7 @@ export class AiClientError extends Error {
   }
 }
 
-export async function createChatCompletion({ messages, tools }) {
+export async function createChatCompletion({ messages, tools, toolChoice }) {
   const payload = {
     model: appConfig.ai.model,
     messages,
@@ -23,7 +23,7 @@ export async function createChatCompletion({ messages, tools }) {
 
   if (appConfig.tools.enabled && tools?.length) {
     payload.tools = tools;
-    payload.tool_choice = 'auto';
+    payload.tool_choice = toolChoice || 'auto';
   }
 
   const controller = new AbortController();

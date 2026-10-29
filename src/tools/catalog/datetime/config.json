@@ -1,0 +1,26 @@
+{
+  "enabled": true,
+  "definition": {
+    "type": "function",
+    "function": {
+      "name": "get_datetime",
+      "description": "Get the current date and time for the user. Never guess the time. For a simple greeting (hi, hello, hey), call with query=greeting to get timezone, date, local time, and time-of-day. For calendars, schedules, or exact clock questions, call with query=full.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "What to return: greeting, timezone, date, time, weekday, or full. Default greeting."
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA timezone such as Africa/Lagos. Omit to infer from the user's phone number."
+          }
+        }
+      }
+    }
+  },
+  "options": {
+    "fallbackTimezone": "UTC"
+  }
+}

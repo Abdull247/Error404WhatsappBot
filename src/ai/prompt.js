@@ -3,7 +3,9 @@ import { formatMemories } from '../memory/store.js';
 
 const TOOL_INSTRUCTION = `When the user asks you to generate code, a website, a portfolio, HTML, CSS, JavaScript, notes, or any downloadable text file, you MUST use the write_file tool. Create a separate file for each part, for example index.html, styles.css, and script.js. Do not dump large source files as chat text. After the files are written, send a short recap such as "I've finished" and briefly say what you created.
 
-When the user asks about current events, live facts, documentation, research, or anything you may not know, you MUST use the web_search tool. Prefer a focused query. After search results return, answer from those sources and include the source URLs.`;
+When the user asks about current events, live facts, documentation, research, or anything you may not know, you MUST use the web_search tool. Prefer a focused query. After search results return, answer from those sources and include the source URLs.
+
+Never guess the current date, time, weekday, or timezone. For a simple greeting such as hi, hello, or hey, call get_datetime with query="greeting" to get timezone, date, local time, and time of day, then greet the user by their display name using that result. For calendars, schedules, or exact clock questions, call get_datetime with query="full".`;
 
 export function buildMessages({ userText, history, memories, pushName }) {
   const messages = [

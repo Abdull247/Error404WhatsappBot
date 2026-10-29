@@ -56,6 +56,7 @@ export const env = {
   TOOLS_OUTPUT_DIR: path.resolve(rootDir, optional('TOOLS_OUTPUT_DIR', './generated')),
   LANGSEARCH_API_KEY: optional('LANGSEARCH_API_KEY', ''),
   LANGSEARCH_BASE_URL: optional('LANGSEARCH_BASE_URL', 'https://api.langsearch.com/v1/web-search').replace(/\/+$/, ''),
+  DEFAULT_TIMEZONE: optional('DEFAULT_TIMEZONE', 'UTC'),
 };
 
 export function ensureSessionDir() {
