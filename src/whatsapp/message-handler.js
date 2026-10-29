@@ -1,4 +1,5 @@
 import { appConfig } from '../config/load-config.js';
+import { env } from '../config/env.js';
 import { generateReply } from '../ai/agent.js';
 import { tryHandleCommand } from '../commands/index.js';
 import { rememberUser } from '../memory/store.js';
@@ -51,8 +52,11 @@ export async function handleIncomingMessage(sock, message) {
   }
 
   const ageMs = Date.now() - Number(message.messageTimestamp || 0) * 1000;
-  if (Number.isFinite(ageMs) && ageMs > 2 * 60 * 1000) {
-    logger.debug({ jid, ageMs }, 'ignored stale WhatsApp message');
+  if (Number.isFinite(ageMs) && ageMs > env.WHATSAPP_MAX_STALE_MS) {
+    logger.info(
+      { jid, ageMs, limitMs: env.WHATSAPP_MAX_STALE_MS },
+      'ignored stale message; if this happens often the host was asleep too long (free tier)',
+    );
     return;
   }
 
@@ -65,6 +69,12 @@ export async function handleIncomingMessage(sock, message) {
   const pushName = message.pushName || null;
   const addressing = shouldReplyToMessage(sock, message, { jid, text, fromMe, group });
   const { shouldReply, mentioned, replyToBot, trigger } = addressing;
+  if (group && !shouldReply && !fromMe) {
+    logger.debug(
+      { jid, trigger, mentioned, replyToBot, text: text.slice(0, 120) },
+      'group message not addressed to bot',
+    );
+  }
   const shouldLog = (!group || appConfig.bot.logGroupMessages !== false)
     && !(fromMe && wasRecentBotReply(jid));
 

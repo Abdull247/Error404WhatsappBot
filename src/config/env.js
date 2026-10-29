@@ -51,6 +51,16 @@ function detectPort() {
   return parsed;
 }
 
+function optionalIntWithDefaultMs(name, fallbackMs) {
+  const raw = process.env[name];
+  if (raw === undefined || raw === '') return fallbackMs;
+  const parsed = Number.parseInt(raw, 10);
+  if (Number.isNaN(parsed) || parsed < 0) {
+    throw new Error(`Environment variable ${name} must be a non-negative integer (milliseconds)`);
+  }
+  return parsed;
+}
+
 const phoneNumber = normalizePhone(optional('WHATSAPP_PHONE_NUMBER', ''));
 const port = detectPort();
 
@@ -68,6 +78,7 @@ export const env = {
   OWNER_NUMBERS: optional('OWNER_NUMBERS', phoneNumber),
   HOST: optional('HOST', '0.0.0.0'),
   PORT: port,
+  WHATSAPP_MAX_STALE_MS: optionalIntWithDefaultMs('WHATSAPP_MAX_STALE_MS', 10 * 60 * 1000),
   LOG_LEVEL: optional('LOG_LEVEL', 'info'),
   CONFIG_PATH: path.resolve(rootDir, optional('CONFIG_PATH', './config.json')),
   TOOLS_OUTPUT_DIR: path.resolve(rootDir, optional('TOOLS_OUTPUT_DIR', './generated')),

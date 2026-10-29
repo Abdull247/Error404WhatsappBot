@@ -98,7 +98,10 @@ export async function createWhatsAppSocket({ onMessage }) {
     if (connection === 'open') {
       reconnecting = false;
       setConnectionStatus('open');
-      logger.info({ jid: sock.user?.id }, 'WhatsApp connected');
+      logger.info(
+        { jid: sock.user?.id, lid: sock.user?.lid || null },
+        'WhatsApp connected (lid is required to detect mentions/replies in some groups)',
+      );
     }
 
     if (connection === 'close') {

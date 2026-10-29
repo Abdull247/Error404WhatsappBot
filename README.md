@@ -269,7 +269,10 @@ CONFIG_PATH=./config.json
 DEFAULT_TIMEZONE=Africa/Lagos
 AI_TIMEOUT_MS=60000
 E2B_TIMEOUT_MS=300000
+WHATSAPP_MAX_STALE_MS=600000
 ```
+
+`WHATSAPP_MAX_STALE_MS` drops messages older than this many milliseconds (default 10 minutes). Raise it if a sleeping free-tier host wakes up and you still want it to answer the backlog; lower it if the bot replies to very old group chatter.
 
 `config.json` is in the repo, so model/personality settings deploy with git. Secrets stay in Render env vars.
 
