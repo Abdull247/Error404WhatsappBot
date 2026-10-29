@@ -1,0 +1,13 @@
+{
+  "id": "imagine",
+  "name": "Can u imagine",
+  "folder": "imagine",
+  "file": "imagine.webp",
+  "path": "stickers/imagine/imagine.webp",
+  "catalog": "stickers/config.json",
+  "enabled": true,
+  "tags": ["imagine", "gossip", "disbelief", "story", "pidgin"],
+  "description": "Grinning Pepe leaning in, caption 'Can u imagine'. Storytime / gossip disbelief: you will not believe this.",
+  "whenToUse": "When reacting to a wild story, gossip, coincidence, or 'see what they did'. Invites sharing more. Closer to chai/na_wa but nosy and grinning, not tired. Also when you are about to drop a surprising fact.",
+  "whenNotToUse": "Skip sensitive news, grief, or when they want a straight answer with no drama."
+}

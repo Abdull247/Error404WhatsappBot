@@ -1,0 +1,13 @@
+{
+  "id": "new_here",
+  "name": "Hi I am new here",
+  "folder": "new_here",
+  "file": "new_here.webp",
+  "path": "stickers/new_here/new_here.webp",
+  "catalog": "stickers/config.json",
+  "enabled": true,
+  "tags": ["intro", "new", "shy", "hello", "group", "join"],
+  "description": "Cute shy cartoon boy, caption 'Hi I am New Here'. Soft first-hello when joining a chat or introducing yourself.",
+  "whenToUse": "Use when the bot or user is new to a group, saying first hello, 'just joined', 'who is this', or a gentle intro. Good for first DM too if the vibe is shy/polite rather than street. Prefer over greet_all when it is one person introducing, not hailing the whole room.",
+  "whenNotToUse": "Skip if the chat is already familiar, for arguments, or when a louder Nigerian hail (my_boss, steeze, greet_all) fits better."
+}

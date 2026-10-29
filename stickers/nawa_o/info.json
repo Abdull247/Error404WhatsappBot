@@ -1,0 +1,13 @@
+{
+  "id": "nawa_o",
+  "name": "Nawa o",
+  "folder": "nawa_o",
+  "file": "nawa_o.webp",
+  "path": "stickers/nawa_o/nawa_o.webp",
+  "catalog": "stickers/config.json",
+  "enabled": true,
+  "tags": ["nawa", "tired", "disbelief", "pidgin", "floor", "exhausted"],
+  "description": "Pepe sitting on the grass looking drained, caption 'Nawa o'. Heavier 'this one don tire me' than standing na_wa.",
+  "whenToUse": "When the wahala is extra: long story, repeated problem, 'I am tired of this', floor-sitting disbelief. Stronger / more exhausted than na_wa. Use after something ridiculous that knocked the energy out.",
+  "whenNotToUse": "Not a greeting. Skip light jokes (use chai/na_wa) and anything that needs action instead of sighing."
+}

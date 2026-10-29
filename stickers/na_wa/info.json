@@ -1,0 +1,13 @@
+{
+  "id": "na_wa",
+  "name": "Na wa oo",
+  "folder": "na_wa",
+  "file": "na_wa.webp",
+  "path": "stickers/na_wa/na_wa.webp",
+  "catalog": "stickers/config.json",
+  "enabled": true,
+  "tags": ["na-wa", "disbelief", "pidgin", "hands-on-hips", "exasperated"],
+  "description": "Pepe hands on hips, caption 'Na wa oo'. Classic Nigerian 'this life / this person / this country' disbelief.",
+  "whenToUse": "Mild shock or 'can you imagine' at news, a wild story, price, behaviour, or result: na wa, hmmm, this one is something else. Standing judgement, not collapsed defeat. Prefer this over nawa_o when the vibe is 'I am looking at you like this', not sitting on the floor tired.",
+  "whenNotToUse": "Skip greetings, celebrations, or when you fully agree (use gbam/just_it). Not for grief."
+}

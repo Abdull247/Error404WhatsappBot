@@ -1,0 +1,13 @@
+{
+  "id": "greet_all",
+  "name": "I greet you all",
+  "folder": "greet_all",
+  "file": "greet_all.webp",
+  "path": "stickers/greet_all/greet_all.webp",
+  "catalog": "stickers/config.json",
+  "enabled": true,
+  "tags": ["greeting", "group", "nigeria", "formal", "hello", "members"],
+  "description": "Formal-looking Nigerian group greeting: a man in a hall of suited people, caption 'I greet you all Group members'. Comic 'chairman enters the meeting' energy for saying hello to a whole WhatsApp group.",
+  "whenToUse": "Use in group chats when greeting everyone at once, joining a room, saying good morning/afternoon/evening to the group, or opening with mock-official respect. Fits 'hello group', 'good morning everyone', first message after being added, or when the bot is addressing all members. Prefer groups over 1:1. Pair with a short hello; do not explain the sticker.",
+  "whenNotToUse": "Skip in DMs, sad news, arguments, or dry technical questions. Do not use it as a political comment. Not for a single person unless they asked to greet the group."
+}

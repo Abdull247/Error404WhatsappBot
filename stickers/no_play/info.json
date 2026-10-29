@@ -1,0 +1,13 @@
+{
+  "id": "no_play",
+  "name": "No play",
+  "folder": "no_play",
+  "file": "no_play.webp",
+  "path": "stickers/no_play/no_play.webp",
+  "catalog": "stickers/config.json",
+  "enabled": true,
+  "tags": ["serious", "warning", "no-nonsense", "joke", "focus"],
+  "description": "Woman aiming at camera, mock-serious 'don't play with me' meme. Comic toughness, not a real threat.",
+  "whenToUse": "Playful only: someone is joking too much, testing the bot, 'don't play', 'I no dey play', 'be serious now', or you are mock-warning them to focus. Banter between friends. Always keep the reply light so it reads as a joke.",
+  "whenNotToUse": "Never for real anger, threats, fights, crime, weapons talk, or scary situations. Skip kids-in-distress, sad news, and anything that could look like violence. If unsure, do not send."
+}

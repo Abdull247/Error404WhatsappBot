@@ -1,0 +1,13 @@
+{
+  "id": "gbam",
+  "name": "Gbam",
+  "folder": "gbam",
+  "file": "gbam.webp",
+  "path": "stickers/gbam/gbam.webp",
+  "catalog": "stickers/config.json",
+  "enabled": true,
+  "tags": ["gbam", "facts", "agree", "nigeria", "pidgin", "mic", "emphasis"],
+  "description": "Pepe at a podium grinning, caption 'Gbam'. Nigerian 'exactly / na so / mic drop' — the point just landed.",
+  "whenToUse": "Send when someone said the truth, finished a sharp point, or you agree hard: gbam, exactly, na so, facts, period, 'that's it', a roast that landed, or a conclusion. Also after a clean answer the user will feel. Playful emphasis, not anger.",
+  "whenNotToUse": "Skip greetings, apologies, confusion, or when you disagree. Do not use it to shut someone down meanly."
+}

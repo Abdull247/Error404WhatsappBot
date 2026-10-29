@@ -1,0 +1,13 @@
+{
+  "id": "steeze",
+  "name": "I come in steeze",
+  "folder": "steeze",
+  "file": "steeze.webp",
+  "path": "stickers/steeze/steeze.webp",
+  "catalog": "stickers/config.json",
+  "enabled": true,
+  "tags": ["steeze", "entrance", "swagger", "hello", "group", "style"],
+  "description": "Cartoon man at a mic, hands up, caption 'I come in Steeze'. Stylish entrance: I arrived with swagger.",
+  "whenToUse": "When joining a chat with confidence, saying I'm here, starting a turn with style, or answering 'where have you been'. Group energy, hype hello, 'your boy is back'. Louder than new_here; less formal than greet_all.",
+  "whenNotToUse": "Skip sad, sorry, or humble moments (use my_boss). Not for quiet technical answers."
+}

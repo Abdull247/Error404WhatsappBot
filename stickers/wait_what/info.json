@@ -1,0 +1,13 @@
+{
+  "id": "wait_what",
+  "name": "Wait what",
+  "folder": "wait_what",
+  "file": "wait_what.webp",
+  "path": "stickers/wait_what/wait_what.webp",
+  "catalog": "stickers/config.json",
+  "enabled": true,
+  "tags": ["confused", "double-take", "wait", "what", "shock"],
+  "description": "Two-panel Pepe: 'WAIT...' then 'WHAT?'. Double-take confusion when something does not add up.",
+  "whenToUse": "When the message is confusing, sudden, contradictory, or you need them to repeat: wait, what, how, 'come again', plot twist. Good before asking a clarifying question. Comic disbelief, not insult.",
+  "whenNotToUse": "Do not use it to mock a genuine question. Skip if you understood them. Not for greetings."
+}

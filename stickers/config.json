@@ -6,7 +6,119 @@
       "folder": "my_boss",
       "path": "stickers/my_boss/my_boss_sticker.webp",
       "info": "stickers/my_boss/info.json",
-      "description": "Nigerian comic-respect greeting. A small boy bows until his head touches the ground, caption 'My boss'. Use it to hail someone with playful respect: elders, customers, mentors, friends, or the user themselves — the way Nigerians say oga, chief, chairman, or my boss. It is a greeting and a show of respect, not a literal workplace boss sticker."
+      "description": "Nigerian comic-respect greeting. Boy bows head-to-ground, caption 'My boss'. Hail elders, customers, mentors, or the user as oga/chief/chairman — not a workplace title."
+    },
+    {
+      "id": "greet_all",
+      "name": "I greet you all",
+      "folder": "greet_all",
+      "path": "stickers/greet_all/greet_all.webp",
+      "info": "stickers/greet_all/info.json",
+      "description": "Formal group hello: 'I greet you all Group members'. Use when addressing a whole WhatsApp group, not a single DM."
+    },
+    {
+      "id": "new_here",
+      "name": "Hi I am new here",
+      "folder": "new_here",
+      "path": "stickers/new_here/new_here.webp",
+      "info": "stickers/new_here/info.json",
+      "description": "Shy cartoon intro: 'Hi I am New Here'. First hello when joining a chat or meeting someone new."
+    },
+    {
+      "id": "steeze",
+      "name": "I come in steeze",
+      "folder": "steeze",
+      "path": "stickers/steeze/steeze.webp",
+      "info": "stickers/steeze/info.json",
+      "description": "Swagger entrance: 'I come in Steeze'. Confident I'm-here energy, louder than new_here."
+    },
+    {
+      "id": "gbam",
+      "name": "Gbam",
+      "folder": "gbam",
+      "path": "stickers/gbam/gbam.webp",
+      "info": "stickers/gbam/info.json",
+      "description": "Podium Pepe, 'Gbam'. Exactly / na so / the point just landed. Punchy agreement."
+    },
+    {
+      "id": "just_it",
+      "name": "That's just it",
+      "folder": "just_it",
+      "path": "stickers/just_it/just_it.webp",
+      "info": "stickers/just_it/info.json",
+      "description": "Podium Pepe, 'That's just it'. Calm close: that is the whole point, nothing extra."
+    },
+    {
+      "id": "na_wa",
+      "name": "Na wa oo",
+      "folder": "na_wa",
+      "path": "stickers/na_wa/na_wa.webp",
+      "info": "stickers/na_wa/info.json",
+      "description": "Hands-on-hips Pepe, 'Na wa oo'. Standing Nigerian disbelief / this-one-is-something-else."
+    },
+    {
+      "id": "nawa_o",
+      "name": "Nawa o",
+      "folder": "nawa_o",
+      "path": "stickers/nawa_o/nawa_o.webp",
+      "info": "stickers/nawa_o/info.json",
+      "description": "Pepe sitting on the grass, 'Nawa o'. Tired, heavier disbelief than standing na_wa."
+    },
+    {
+      "id": "chai",
+      "name": "Chai",
+      "folder": "chai",
+      "path": "stickers/chai/chai.webp",
+      "info": "stickers/chai/info.json",
+      "description": "Teary stickman, 'CHAI'. Pity, awe, and relatable pain — softer than na_wa."
+    },
+    {
+      "id": "imagine",
+      "name": "Can u imagine",
+      "folder": "imagine",
+      "path": "stickers/imagine/imagine.webp",
+      "info": "stickers/imagine/info.json",
+      "description": "Grinning Pepe, 'Can u imagine'. Gossip/storytime disbelief, nosy not tired."
+    },
+    {
+      "id": "wait_what",
+      "name": "Wait what",
+      "folder": "wait_what",
+      "path": "stickers/wait_what/wait_what.webp",
+      "info": "stickers/wait_what/info.json",
+      "description": "Two-panel Pepe WAIT... WHAT? Double-take confusion before asking them to repeat."
+    },
+    {
+      "id": "you_sabi",
+      "name": "Na you sabi",
+      "folder": "you_sabi",
+      "path": "stickers/you_sabi/you_sabi.webp",
+      "info": "stickers/you_sabi/info.json",
+      "description": "Toddler caption 'NA YOU SABI'. Unbothered your-call / I have said my own."
+    },
+    {
+      "id": "sips_garri",
+      "name": "Sips garri",
+      "folder": "sips_garri",
+      "path": "stickers/sips_garri/sips_garri.webp",
+      "info": "stickers/sips_garri/info.json",
+      "description": "Pepe sipping, 'Sips Garri.' Spectator popcorn energy while drama unfolds."
+    },
+    {
+      "id": "discipline",
+      "name": "I go discipline you",
+      "folder": "discipline",
+      "path": "stickers/discipline/discipline.webp",
+      "info": "stickers/discipline/info.json",
+      "description": "Side-eye blob, 'I go discipline you'. Fond Nigerian tease-scold, not real punishment."
+    },
+    {
+      "id": "no_play",
+      "name": "No play",
+      "folder": "no_play",
+      "path": "stickers/no_play/no_play.webp",
+      "info": "stickers/no_play/info.json",
+      "description": "Mock-serious 'don't play with me' meme. Banter only — never real threats or violence."
     }
   ]
 }

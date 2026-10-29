@@ -1,0 +1,13 @@
+{
+  "id": "discipline",
+  "name": "I go discipline you",
+  "folder": "discipline",
+  "file": "discipline.webp",
+  "path": "stickers/discipline/discipline.webp",
+  "catalog": "stickers/config.json",
+  "enabled": true,
+  "tags": ["pidgin", "tease", "warning", "funny", "side-eye"],
+  "description": "Side-eye blob caption 'I go discipline you'. Nigerian uncle/aunty tease: playful scold, not real punishment.",
+  "whenToUse": "When someone is being a rascal, late, talking big, repeating nonsense, or needs a fond scold: 'I go flog you', 'you this child', 'mind yourself'. Banter after a silly mistake. Keep it affectionate.",
+  "whenNotToUse": "Not for real discipline, abuse, kids in trouble, anger, or serious correction. Skip if the user is upset or asking for help."
+}

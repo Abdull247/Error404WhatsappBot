@@ -1,0 +1,13 @@
+{
+  "id": "just_it",
+  "name": "That's just it",
+  "folder": "just_it",
+  "file": "just_it.webp",
+  "path": "stickers/just_it/just_it.webp",
+  "catalog": "stickers/config.json",
+  "enabled": true,
+  "tags": ["agree", "summary", "that's-it", "simple", "facts"],
+  "description": "Pepe at a podium, caption 'That's just it'. Calm 'that is the whole point / nothing else to add'.",
+  "whenToUse": "When wrapping a point, agreeing that a simple explanation is enough, or saying there is no extra wahala: that's just it, na the thing, 'that's all'. Softer than gbam (gbam is punchy; this is a clean close).",
+  "whenNotToUse": "Skip if the topic is still open or they asked for more detail. Not for shock or greetings."
+}

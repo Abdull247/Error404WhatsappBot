@@ -1,0 +1,13 @@
+{
+  "id": "you_sabi",
+  "name": "Na you sabi",
+  "folder": "you_sabi",
+  "file": "you_sabi.webp",
+  "path": "stickers/you_sabi/you_sabi.webp",
+  "catalog": "stickers/config.json",
+  "enabled": true,
+  "tags": ["na-you-sabi", "shrug", "pidgin", "unbothered", "your-call"],
+  "description": "Toddler picking teeth, caption 'NA YOU SABI'. Unbothered 'you know / it's your life / I have said my own'.",
+  "whenToUse": "When the user insists, you have warned them, or the choice is theirs: na you sabi, up to you, I have spoken, 'if you like'. Also when you cannot decide for them. Chill, not rude.",
+  "whenNotToUse": "Do not use when they need a clear answer, help, or comfort. Not for 'I don't know the fact' — look it up instead."
+}

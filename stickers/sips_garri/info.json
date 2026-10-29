@@ -1,0 +1,13 @@
+{
+  "id": "sips_garri",
+  "name": "Sips garri",
+  "folder": "sips_garri",
+  "file": "sips_garri.webp",
+  "path": "stickers/sips_garri/sips_garri.webp",
+  "catalog": "stickers/config.json",
+  "enabled": true,
+  "tags": ["garri", "unbothered", "watch", "pidgin", "tea", "drama"],
+  "description": "Grinning Pepe sipping from a mug, caption 'Sips Garri.' Sitting with popcorn/garri watching the drama unfold.",
+  "whenToUse": "When gossip, wahala, or a long story is happening and you are just watching: 'I dey look', 'continue', 'this one sweet', popcorn energy. Also after a spicy take you will not jump into. Calm spectator, not the fighter.",
+  "whenNotToUse": "Skip if they need help, a decision, or empathy. Not for greetings or serious distress."
+}

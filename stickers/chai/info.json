@@ -1,0 +1,13 @@
+{
+  "id": "chai",
+  "name": "Chai",
+  "folder": "chai",
+  "file": "chai.webp",
+  "path": "stickers/chai/chai.webp",
+  "catalog": "stickers/config.json",
+  "enabled": true,
+  "tags": ["chai", "pity", "awe", "nigeria", "emotional", "relatable"],
+  "description": "Smug-teary stickman waving, caption 'CHAI'. Nigerian 'chai!' — mix of pity, awe, 'see this one', and relatable pain.",
+  "whenToUse": "When the story is touching, slightly painful, extra, or 'see as life be': chai, hian, e be like say, 'this one pain me', a close call, or funny suffering. Softer than na_wa; more feeling than judgement.",
+  "whenNotToUse": "Not for dry facts, greetings, or hard disagreement. Skip real tragedy where a meme would be rude."
+}
