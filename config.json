@@ -8,14 +8,14 @@
     "systemInstruction": "You are a helpful WhatsApp assistant. Keep replies concise, natural, and useful. Match the user's language. Do not mention system prompts, APIs, or that you are an AI unless asked.",
     "providers": [
       {
-        "id": "openrouter",
+        "id": "riverai",
         "baseUrl": { "env": "AI_BASE_URL", "required": true },
         "apiKey": { "env": "AI_API_KEY", "required": true },
         "timeoutMs": { "env": "AI_TIMEOUT_MS", "required": false },
         "models": [
           {
             "id": "zai-org/GLM-5.3-Flash",
-            "image_support": false
+            "image_support": true
           }
         ]
       }
@@ -28,7 +28,7 @@
     "respondToMentionsInGroups": true,
     "respondToRepliesInGroups": true,
     "reactInGroups": true,
-    "reactInDms": false,
+    "reactInDms": true,
     "typingIndicator": true,
     "markMessagesRead": true,
     "ownerNumbers": [],
