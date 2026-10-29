@@ -39,7 +39,20 @@ function normalizePhone(value) {
   return String(value || '').replace(/\D/g, '');
 }
 
+function detectPort() {
+  const raw = process.env.PORT;
+  if (raw === undefined || raw === '') {
+    return optionalBool('HEALTH_SERVER', false) ? 10000 : 0;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  if (Number.isNaN(parsed)) {
+    throw new Error('Environment variable PORT must be an integer');
+  }
+  return parsed;
+}
+
 const phoneNumber = normalizePhone(optional('WHATSAPP_PHONE_NUMBER', ''));
+const port = detectPort();
 
 export const env = {
   ROOT_DIR: rootDir,
@@ -48,10 +61,13 @@ export const env = {
   AI_TIMEOUT_MS: optionalInt('AI_TIMEOUT_MS', 60000),
   DATABASE_URL: required('DATABASE_URL'),
   WHATSAPP_SESSION_DIR: path.resolve(rootDir, optional('WHATSAPP_SESSION_DIR', './session')),
+  WHATSAPP_AUTH_STORE: optional('WHATSAPP_AUTH_STORE', port ? 'postgres' : 'file'),
   WHATSAPP_PRINT_QR: optionalBool('WHATSAPP_PRINT_QR', true),
   WHATSAPP_PHONE_NUMBER: phoneNumber,
   WHATSAPP_USE_PAIRING_CODE: optionalBool('WHATSAPP_USE_PAIRING_CODE', Boolean(phoneNumber)),
   OWNER_NUMBERS: optional('OWNER_NUMBERS', phoneNumber),
+  HOST: optional('HOST', '0.0.0.0'),
+  PORT: port,
   LOG_LEVEL: optional('LOG_LEVEL', 'info'),
   CONFIG_PATH: path.resolve(rootDir, optional('CONFIG_PATH', './config.json')),
   TOOLS_OUTPUT_DIR: path.resolve(rootDir, optional('TOOLS_OUTPUT_DIR', './generated')),

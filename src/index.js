@@ -1,16 +1,20 @@
-import { ensureSessionDir, ensureToolsOutputDir } from './config/env.js';
+import { ensureSessionDir, ensureToolsOutputDir, env } from './config/env.js';
 import { appConfig } from './config/load-config.js';
 import { runMigrations } from './db/migrate.js';
 import { loadCommands } from './commands/index.js';
 import { loadPersonalities } from './personalities/load.js';
+import { startHealthServer } from './http/server.js';
 import { initTools } from './tools/index.js';
 import { logger } from './utils/logger.js';
 import { createWhatsAppSocket } from './whatsapp/auth.js';
 import { handleIncomingMessage } from './whatsapp/message-handler.js';
 
 async function main() {
-  ensureSessionDir();
+  if (env.WHATSAPP_AUTH_STORE !== 'postgres') {
+    ensureSessionDir();
+  }
   ensureToolsOutputDir();
+  startHealthServer();
   await initTools();
   loadCommands();
   const personalities = loadPersonalities();

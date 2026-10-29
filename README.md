@@ -120,11 +120,57 @@ npm run migrate
 
 ## Deploy on Render
 
-Deploy this as a **Background Worker**, not a Web Service, Static Site, Cron Job, or Private Service.
+Two supported service types. Both run the same code; the bot switches modes from env vars alone.
 
-This process does not serve HTTP. It keeps a WhatsApp socket open, talks to Neon, and calls AI/tool APIs. A Web Service will fail health checks because nothing listens on `PORT`. A Background Worker is the correct Render type for that.
+| Type | When to use | What you need |
+| --- | --- | --- |
+| **Web Service** (free tier works) | Default choice. Renders a health endpoint on `$PORT`. | Nothing extra; pair the bot once from your phone. |
+| **Background Worker** (paid) | If you want the session on a persistent disk instead of Postgres. | Persistent disk + instance that never spins down. |
 
-Use a **paid** instance so Render does not spin it down. Free web services sleep; this bot must stay connected.
+### Web Service mode (recommended)
+
+Set the environment variable `PORT` (Render injects it automatically, but you can also pin it). The bot then:
+
+- starts a tiny HTTP server on `$PORT` serving `GET /`, `/health`, and `/ping` with JSON status (`whatsapp` connection state and `jid` included);
+- defaults `WHATSAPP_AUTH_STORE=postgres`, so the WhatsApp session lives in Neon instead of the ephemeral disk and survives deploys and restarts.
+
+Free web services sleep after ~15 minutes of no inbound HTTP. The WhatsApp socket does not count as activity, so it is strongest to keep a free pinger (UptimeRobot, cron-job.org, etc.) hitting `/health` every 5-10 minutes.
+
+Settings:
+
+```text
+Name: error404-whatsapp-bot
+Region: closest to you
+Branch: main
+Root Directory: (leave empty)
+Runtime: Node
+Build Command: npm install
+Start Command: npm start
+Health Check Path: /health
+```
+
+No persistent disk is required in this mode. `TOOLS_OUTPUT_DIR` is still ephemeral, which is fine for disposable generated files.
+
+### Background Worker mode
+
+A Background Worker gets no `PORT`, the HTTP server stays off, and the session defaults to `WHATSAPP_AUTH_STORE=file`. It keeps a WhatsApp socket open with no inbound traffic.
+
+Use a **paid** instance so Render does not spin it down. Add a persistent disk:
+
+```text
+Name: whatsapp-data
+Mount Path: /data
+Size: 1 GB
+```
+
+Then set:
+
+```text
+WHATSAPP_SESSION_DIR=/data/session
+TOOLS_OUTPUT_DIR=/data/generated
+```
+
+Without this, every deploy or restart wipes `./session` and the bot logs out.
 
 ### Create the service
 
@@ -194,6 +240,16 @@ WHATSAPP_PRINT_QR=false
 OWNER_NUMBERS=2348012345678
 ```
 
+Session and health (only what differs from the defaults):
+
+```text
+WHATSAPP_SESSION_DIR=/data/session  # Worker mode with a disk only
+WHATSAPP_AUTH_STORE=postgres         # omit to auto-detect from PORT
+PORT=10000                            # Web Service only, usually injected
+HOST=0.0.0.0
+HEALTH_SERVER=true                    # optional: listen on 10000 without PORT
+```
+
 Use digits only, with country code, no `+` or spaces.
 
 Optional tools:
@@ -219,26 +275,26 @@ E2B_TIMEOUT_MS=300000
 
 ### First boot / link WhatsApp
 
-1. Deploy the worker.
+1. Deploy the service.
 2. Open **Logs**.
 3. Wait for a pairing code line such as `WhatsApp pairing code ready`.
 4. On your phone: Linked Devices > Link with phone number > enter the code.
-5. After `WhatsApp connected`, leave the worker running.
+5. After `WhatsApp connected`, leave the service running. `GET /health` should report `"whatsapp":"open"`.
 
-If the session is already on the persistent disk, later deploys reconnect without a new code.
+If the session is already stored (Postgres rows or the persistent disk), later deploys reconnect without a new code.
 
 Do not use QR login on Render unless you can read the ASCII QR in logs. Pairing code is the reliable path.
 
 ### What not to deploy it as
 
-- **Web Service**: Render expects HTTP on `$PORT`. This bot never binds a port.
 - **Static Site**: there is no frontend build to host.
 - **Cron Job**: the WhatsApp socket must stay open, not run once and exit.
-- **Private Service**: still the wrong shape, and nothing else in this repo needs to call it over HTTP.
+- **Private Service**: works technically, but nothing else in this repo needs to call the health endpoint over HTTP, so there is no reason to pick it over a Web Service.
 
 ### After deploy
 
-- Migrations run on startup (`runMigrations` in `src/index.js`). You do not need a separate migrate step.
-- Scale to **1 instance**. Two workers with the same session will fight over the WhatsApp link.
-- If the bot stops answering, check logs for disconnects, then confirm the persistent disk still has `/data/session`.
-- To relink, clear `/data/session` on the disk (or change `WHATSAPP_SESSION_DIR`) and restart. A new pairing code will print in logs.
+- Migrations run on startup (`runMigrations` in `src/index.js`). You do not need a separate migrate step. This includes `004_whatsapp_auth.sql`, which creates the `whatsapp_auth` table for the Postgres session store.
+- Scale to **1 instance**. Two instances with the same session will fight over the WhatsApp link.
+- Health check: `GET /health` (or `/ping`) returns `{"ok":true,"whatsapp":"open","jid":"...","uptime":...}` when connected.
+- Worker mode: if the bot stops answering, check logs for disconnects, then confirm the persistent disk still has `/data/session`.
+- Web Service mode: the session is in Neon, so a lost link is not about disk. To relink, clear the `whatsapp_auth` rows (or set `WHATSAPP_AUTH_STORE=file` locally) and restart. A new pairing code will print in logs.

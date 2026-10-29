@@ -3,13 +3,13 @@ import makeWASocket, {
   DisconnectReason,
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
-  useMultiFileAuthState,
 } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import qrcode from 'qrcode-terminal';
 import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
-import { setCurrentSocket } from './socket.js';
+import { createAuthState } from './auth-state.js';
+import { setConnectionStatus, setCurrentSocket } from './socket.js';
 
 let reconnecting = false;
 let pairingRequested = false;
@@ -50,7 +50,7 @@ async function requestPairingCode(sock) {
 }
 
 export async function createWhatsAppSocket({ onMessage }) {
-  const { state, saveCreds } = await useMultiFileAuthState(env.WHATSAPP_SESSION_DIR);
+  const { state, saveCreds } = await createAuthState();
   const { version } = await fetchLatestBaileysVersion();
 
   const baileysLogger = logger.child({ module: 'baileys' });
@@ -73,6 +73,7 @@ export async function createWhatsAppSocket({ onMessage }) {
   });
 
   setCurrentSocket(sock);
+  setConnectionStatus('connecting');
   sock.ev.on('creds.update', saveCreds);
 
   sock.ev.on('connection.update', async (update) => {
@@ -83,16 +84,20 @@ export async function createWhatsAppSocket({ onMessage }) {
       qrcode.generate(qr, { small: true });
     }
 
-    if (connection === 'connecting' && usePairingCode) {
-      try {
-        await requestPairingCode(sock);
-      } catch (error) {
-        logger.error({ err: error }, 'failed to request WhatsApp pairing code');
+    if (connection === 'connecting') {
+      setConnectionStatus('connecting');
+      if (usePairingCode) {
+        try {
+          await requestPairingCode(sock);
+        } catch (error) {
+          logger.error({ err: error }, 'failed to request WhatsApp pairing code');
+        }
       }
     }
 
     if (connection === 'open') {
       reconnecting = false;
+      setConnectionStatus('open');
       logger.info({ jid: sock.user?.id }, 'WhatsApp connected');
     }
 
@@ -102,6 +107,7 @@ export async function createWhatsAppSocket({ onMessage }) {
         : lastDisconnect?.error?.output?.statusCode;
       const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
       pairingRequested = false;
+      setConnectionStatus(shouldReconnect ? 'reconnecting' : 'logged_out');
       logger.warn({ statusCode, shouldReconnect }, 'WhatsApp disconnected');
 
       if (shouldReconnect && !reconnecting) {
