@@ -37,6 +37,7 @@ Copy `.env.example` to `.env` and fill in:
 - `DATABASE_URL`
 - `LANGSEARCH_API_KEY`
 - `E2B_API_KEY`
+- `SCREENSHOTLAYER_API_KEY`
 
 Edit `config.json` for model, temperature, and system instruction.
 
@@ -89,6 +90,8 @@ Tool calling is enabled in `config.json`. Each tool lives in `src/tools/catalog/
 `list_chats` and `summarize_chat` are owner-only. The bot logs DMs and group messages it sees (even when `ignoreGroups` is true and it does not reply). Ask it to list chats, then summarize a group or pull out facts, people, decisions, and action items. Set `OWNER_NUMBERS` in `.env` (comma-separated, with country code) so only you can use these tools. Summarize reacts with an hourglass, then a check mark.
 
 `react` puts one emoji on the current WhatsApp message. In groups, if someone tags the bot or replies to it with something funny, hype, or grateful, it can react first and then send a text reply.
+
+`screenshot` captures a website with the Screenshotlayer API and sends the image on WhatsApp. Set `SCREENSHOTLAYER_API_KEY` in `.env`. Ask for a screenshot of a URL, optionally full page or a mobile viewport. Capture reacts with an hourglass, then a check mark.
 
 ## Commands
 

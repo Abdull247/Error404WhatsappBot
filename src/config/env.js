@@ -60,6 +60,12 @@ export const env = {
   DEFAULT_TIMEZONE: optional('DEFAULT_TIMEZONE', 'UTC'),
   E2B_API_KEY: optional('E2B_API_KEY', ''),
   E2B_TIMEOUT_MS: optionalInt('E2B_TIMEOUT_MS', 300000),
+  SCREENSHOTLAYER_API_KEY: optional('SCREENSHOTLAYER_API_KEY', '36ba2cccc19800bc5f098110779c083d'),
+  SCREENSHOTLAYER_SECRET: optional('SCREENSHOTLAYER_SECRET', ''),
+  SCREENSHOTLAYER_BASE_URL: optional(
+    'SCREENSHOTLAYER_BASE_URL',
+    'https://api.screenshotlayer.com/api/capture',
+  ).replace(/\/+$/, ''),
 };
 
 if (env.E2B_API_KEY && !process.env.E2B_API_KEY) {

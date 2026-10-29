@@ -1,0 +1,59 @@
+{
+  "enabled": true,
+  "definition": {
+    "type": "function",
+    "function": {
+      "name": "screenshot",
+      "description": "Capture a screenshot of a website with Screenshotlayer and send it on WhatsApp. Use this when the user asks how a site looks, wants a snapshot, preview, or screenshot of a URL. Always pass a full http/https URL. After the image is sent, give a short recap with the URL. Do not describe the page unless the screenshot was captured.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Website URL to capture, for example https://www.apple.com"
+          },
+          "fullpage": {
+            "type": "boolean",
+            "description": "If true, capture the full page height instead of the viewport only."
+          },
+          "viewport": {
+            "type": "string",
+            "description": "Viewport size in pixels, for example 1440x900 or 390x844 for mobile."
+          },
+          "width": {
+            "type": "integer",
+            "description": "Optional thumbnail width in pixels. Omit for the full viewport width."
+          },
+          "delay": {
+            "type": "integer",
+            "description": "Seconds to wait before capture, from 1 to 20. Use for pages that load slowly."
+          },
+          "format": {
+            "type": "string",
+            "description": "Image format: PNG, JPG, JPEG, GIF, or WEBP. Default PNG."
+          },
+          "force": {
+            "type": "boolean",
+            "description": "If true, skip cache and capture a fresh screenshot. Default true."
+          },
+          "quality": {
+            "type": "integer",
+            "description": "JPEG/WebP quality from 1 to 100."
+          },
+          "user_agent": {
+            "type": "string",
+            "description": "Optional custom User-Agent header."
+          }
+        },
+        "required": ["url"]
+      }
+    }
+  },
+  "options": {
+    "slow": true,
+    "format": "PNG",
+    "viewport": "1440x900",
+    "fullpage": false,
+    "timeoutMs": 60000
+  }
+}

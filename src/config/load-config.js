@@ -32,7 +32,7 @@ const defaults = {
   },
   tools: {
     enabled: true,
-    allow: ['write_file', 'web_search', 'get_datetime', 'sandbox', 'list_chats', 'summarize_chat', 'react'],
+    allow: ['write_file', 'web_search', 'get_datetime', 'sandbox', 'list_chats', 'summarize_chat', 'react', 'screenshot'],
     maxRounds: 10,
   },
 };

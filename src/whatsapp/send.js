@@ -10,7 +10,7 @@ export async function sendArtifacts(sock, jid, artifacts = [], quoted) {
             image: fs.readFileSync(file.path),
             fileName: file.filename,
             mimetype: file.mimetype,
-            caption: file.filename,
+            caption: file.caption || file.filename,
           }
         : {
             document: fs.readFileSync(file.path),
