@@ -1,0 +1,13 @@
+{
+  "accountId": { "env": "CLOUDFLARE_ACCOUNT_ID", "required": true },
+  "apiToken": { "env": "CLOUDFLARE_API_TOKEN", "required": true },
+  "baseUrl": "https://api.cloudflare.com/client/v4",
+  "models": {
+    "image": [
+      { "id": "@cf/black-forest-labs/flux-1-schnell", "name": "Flux schnell", "enabled": true }
+    ],
+    "text": [
+      { "id": "@cf/moonshotai/kimi-k2.7-code", "name": "Kimi k2.7 code", "enabled": true }
+    ]
+  }
+}

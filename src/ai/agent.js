@@ -4,9 +4,9 @@ import { getChatSettings } from '../db/repositories/settings.js';
 import { loadContext, saveTurn } from '../memory/store.js';
 import { findPersonality, formatPersonalityPrompt, getDefaultPersonality } from '../personalities/load.js';
 import { executeToolCall, loadTools } from '../tools/index.js';
-import { isSlowTool } from '../tools/registry.js';
+import { getToolOptions, isSlowTool } from '../tools/registry.js';
 import { logger } from '../utils/logger.js';
-import { BUSY_REACTIONS, reactToMessage } from '../whatsapp/react.js';
+import { BUSY_REACTIONS, CHECK, HOURGLASS, reactToMessage, removeReaction } from '../whatsapp/react.js';
 import { formatEnvironmentPrompt } from '../whatsapp/group.js';
 import { isOwnerJid } from '../whatsapp/owner.js';
 import { createChatCompletion } from './client.js';
@@ -114,6 +114,7 @@ export async function generateReply({
   const maxRounds = appConfig.tools.maxRounds || 6;
   let lastMessage = null;
   let reactedBusy = false;
+  let doneReaction = null;
   let expressiveReaction = existingReaction || '';
   const toolContext = {
     jid,
@@ -154,9 +155,18 @@ export async function generateReply({
       if (!toolCalls.length) break;
 
       for (const toolCall of toolCalls) {
-        if (!reactedBusy && !expressiveReaction && isSlowTool(toolCall?.function?.name)) {
-          await reactToMessage(sock, message, '\u231B');
+        const name = toolCall?.function?.name;
+        const options = getToolOptions(name);
+        const busyEmoji = options.reactBusy ?? (isSlowTool(name) ? HOURGLASS : null);
+        const finishedEmoji = options.reactDone !== undefined
+          ? options.reactDone
+          : (isSlowTool(name) ? CHECK : null);
+        if (busyEmoji && !reactedBusy && !expressiveReaction) {
+          await reactToMessage(sock, message, busyEmoji);
           reactedBusy = true;
+        }
+        if (finishedEmoji !== null && finishedEmoji !== undefined) {
+          doneReaction = finishedEmoji;
         }
         const result = await executeToolCall(toolCall, toolContext);
         messages.push(result.message);
@@ -167,7 +177,11 @@ export async function generateReply({
     }
   } finally {
     if (reactedBusy && !expressiveReaction) {
-      await reactToMessage(sock, message, '\u2705');
+      if (doneReaction === '') {
+        await removeReaction(sock, message);
+      } else if (doneReaction) {
+        await reactToMessage(sock, message, doneReaction);
+      }
     }
   }
 

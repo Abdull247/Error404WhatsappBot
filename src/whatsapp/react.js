@@ -1,7 +1,8 @@
 import { logger } from '../utils/logger.js';
 
-const HOURGLASS = '\u231B';
-const CHECK = '\u2705';
+export const HOURGLASS = '\u231B';
+export const CHECK = '\u2705';
+export const IMAGE_DONE = '\u{1F5BC}\uFE0F';
 
 export const BUSY_REACTIONS = new Set([HOURGLASS, CHECK]);
 
@@ -70,6 +71,24 @@ export async function reactToMessage(sock, message, emoji) {
     return true;
   } catch (error) {
     logger.warn({ err: error, jid, emoji: text }, 'failed to react to message');
+    return false;
+  }
+}
+
+export async function removeReaction(sock, message) {
+  if (!sock || !message?.key) return false;
+  const jid = message.key.remoteJid;
+  if (!jid) return false;
+  try {
+    await sock.sendMessage(jid, {
+      react: {
+        text: '',
+        key: message.key,
+      },
+    });
+    return true;
+  } catch (error) {
+    logger.warn({ err: error, jid }, 'failed to remove reaction');
     return false;
   }
 }

@@ -19,5 +19,9 @@
         }
       }
     }
+  },
+  "options": {
+    "reactBusy": "⏳",
+    "reactDone": ""
   }
 }

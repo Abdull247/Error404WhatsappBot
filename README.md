@@ -6,6 +6,7 @@ Node.js WhatsApp bot using Baileys, an OpenAI-compatible AI API, and Neon Postgr
 
 ```text
 config.json
+cloudflare.json
 sandboxes.json
 stickers/
 custom-instructions.json
@@ -25,6 +26,7 @@ src/
 - `config.json` holds AI providers and models, the default model, system instruction, bot behavior, and memory settings.
 - `sandboxes.json` holds sandbox backends and which one is active (`default`). Only that sandbox's tools are exposed.
 - `stickers/` holds WhatsApp sticker packs: one folder per sticker (webp + `info.json`) and `stickers/config.json` listing them for the model.
+- `cloudflare.json` holds the Cloudflare AI provider (account/token env refs) and models by category. `generate_image` uses its `image` models; other model families can be added later.
 - `custom-instructions.json` holds always-on identity and creator details injected into every system prompt.
 - In groups the bot stays quiet unless it is @mentioned or someone replies to one of its messages. Replies are quoted so the group can follow the thread. The AI is told it is in a group and gets the group name, description, and speaker.
 - `.env` holds secrets and connection URLs.
@@ -45,6 +47,8 @@ Copy `.env.example` to `.env` and fill in:
 - `E2B_API_KEY` (if `sandboxes.json` default is `sandbox`)
 - `INSTABOX_API_KEY` (if default is `linux_machine`)
 - `SCREENSHOTLAYER_API_KEY`
+- `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_ENDPOINT` (persistent file storage)
+- `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (image generation)
 
 Edit `config.json` for providers, default model, temperature, and system instruction. Edit `sandboxes.json` to choose the active Linux backend.
 
@@ -136,6 +140,10 @@ Only one sandbox backend is exposed at a time. Set `"default"` in `sandboxes.jso
 `react` puts one emoji on the current WhatsApp message. In groups, if someone tags the bot or replies to it with something funny, hype, or grateful, it can react first and then send a text reply.
 
 `send_sticker` sends a WhatsApp sticker from `stickers/`. Each pack is a folder with a `.webp` and `info.json` (`id`, `description`, `whenToUse`, path). `stickers/config.json` lists every pack so the model can pick one. Call `list` to inspect, then `send` with an id such as `my_boss`. After the sticker, the bot still sends a short text reply.
+
+`generate_image` creates an image from a text prompt using the Cloudflare AI provider. Set `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`; models live in `cloudflare.json` (default `@cf/black-forest-labs/flux-1-schnell`). It reacts with an hourglass while running and a picture emoji when done, sends the image on WhatsApp, then stores it in the chat's R2 folder when R2 is configured.
+
+`file_storage` persists files to Cloudflare R2 and remembers them in the database, scoped to the requesting user or group. Set `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, and `R2_ENDPOINT` (plus optional `R2_PUBLIC_URL`). Actions: `upload` (content, base64, or path), `get`, `list`, `delete`. Incoming user files are also stored automatically for the chat.
 
 `screenshot` captures a website with the Screenshotlayer API and sends the image on WhatsApp. Set `SCREENSHOTLAYER_API_KEY` in `.env`. Ask for a screenshot of a URL, optionally full page or a mobile viewport. Capture reacts with an hourglass, then a check mark.
 
@@ -339,6 +347,14 @@ INSTABOX_TEMPLATE
 INSTABOX_MACHINE_ID
 SCREENSHOTLAYER_API_KEY
 SCREENSHOTLAYER_SECRET
+R2_ACCESS_KEY_ID
+R2_SECRET_ACCESS_KEY
+R2_BUCKET_NAME
+R2_ENDPOINT
+R2_PUBLIC_URL
+R2_ACCOUNT_ID
+CLOUDFLARE_ACCOUNT_ID
+CLOUDFLARE_API_TOKEN
 ```
 
 Useful extras:
@@ -348,6 +364,7 @@ LOG_LEVEL=info
 CONFIG_PATH=./config.json
 SANDBOXES_PATH=./sandboxes.json
 STICKERS_PATH=./stickers/config.json
+CLOUDFLARE_CONFIG_PATH=./cloudflare.json
 DEFAULT_TIMEZONE=Africa/Lagos
 AI_TIMEOUT_MS=60000
 E2B_TIMEOUT_MS=300000

@@ -1,0 +1,48 @@
+{
+  "enabled": true,
+  "definition": {
+    "type": "function",
+    "function": {
+      "name": "file_storage",
+      "description": "Persist a file to this chat's cloud storage (Cloudflare R2) and remember it in the database, or fetch, list, and delete stored files. Every file is scoped to the requesting user or group — only that chat can retrieve it. Use upload for generated or attached files the user wants to keep, get to retrieve a stored file URL, list to show what is saved, delete to remove one. After uploading, briefly tell the user the file is saved and share the URL if they asked.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "upload, get, list, or delete."
+          },
+          "filename": {
+            "type": "string",
+            "description": "Name to store the file under (upload) or the name of a stored file to fetch (get)."
+          },
+          "content": {
+            "type": "string",
+            "description": "Text content to store (upload with text files)."
+          },
+          "path": {
+            "type": "string",
+            "description": "Local file path to upload. Absolute, or relative to the generated output folder."
+          },
+          "base64": {
+            "type": "string",
+            "description": "Base64-encoded file bytes to upload."
+          },
+          "id": {
+            "type": "string",
+            "description": "Stored file id for get or delete."
+          },
+          "mimetype": {
+            "type": "string",
+            "description": "Optional content type, for example text/markdown or image/png."
+          }
+        },
+        "required": ["action"]
+      }
+    }
+  },
+  "options": {
+    "reactBusy": "⏳",
+    "reactDone": ""
+  }
+}

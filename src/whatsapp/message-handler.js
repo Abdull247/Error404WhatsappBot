@@ -15,6 +15,7 @@ import {
   shouldReplyToMessage,
 } from './group.js';
 import { logIncomingMessage } from './log-message.js';
+import { storeIncomingFile } from './attachments.js';
 import { markBotReply, wasRecentBotReply } from './outbound.js';
 import { pickGroupReaction, reactToMessage } from './react.js';
 import { sendArtifacts } from './send.js';
@@ -100,6 +101,12 @@ export async function handleIncomingMessage(sock, message) {
     }
 
     if (!shouldReply) return;
+
+    if (!fromMe && hasIncomingAttachment(message)) {
+      storeIncomingFile(sock, message, jid).catch((error) => {
+        logger.warn({ err: error, jid }, 'failed to store incoming file in R2');
+      });
+    }
 
     const groupDetails = group ? await loadGroupDetails(sock, jid) : null;
     const environment = buildChatEnvironment({

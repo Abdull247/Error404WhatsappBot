@@ -1,0 +1,37 @@
+{
+  "enabled": true,
+  "provider": "cloudflare",
+  "model": "@cf/black-forest-labs/flux-1-schnell",
+  "definition": {
+    "type": "function",
+    "function": {
+      "name": "generate_image",
+      "description": "Generate an image from a text prompt using the Cloudflare AI provider (model id from the tool config / cloudflare.json). Reacts with an hourglass while running and a picture emoji when done, then sends the image on WhatsApp. Call this when the user asks you to draw, create, design, imagine, or make any picture, logo, meme, avatar, artwork, or photo. After the image is delivered, give a short recap of what you made.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "Detailed, specific image prompt describing subject, style, colours, mood, and composition."
+          },
+          "model": {
+            "type": "string",
+            "description": "Optional Cloudflare model id, for example @cf/black-forest-labs/flux-1-schnell. Defaults to the configured image model."
+          },
+          "steps": {
+            "type": "integer",
+            "description": "Optional generation steps (quality/speed trade-off)."
+          }
+        },
+        "required": ["prompt"]
+      }
+    }
+  },
+  "options": {
+    "slow": true,
+    "reactBusy": "⏳",
+    "reactDone": "🖼️",
+    "model": "@cf/black-forest-labs/flux-1-schnell",
+    "maxPromptChars": 2000
+  }
+}
