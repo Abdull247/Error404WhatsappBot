@@ -15,7 +15,7 @@ import {
   shouldReplyToMessage,
 } from './group.js';
 import { logIncomingMessage } from './log-message.js';
-import { storeIncomingFile } from './attachments.js';
+import { hasIncomingAttachment, storeIncomingFile } from './attachments.js';
 import { markBotReply, wasRecentBotReply } from './outbound.js';
 import { pickGroupReaction, reactToMessage } from './react.js';
 import { sendArtifacts } from './send.js';
