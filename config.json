@@ -13,11 +13,15 @@
         "apiKey": { "env": "AI_API_KEY", "required": true },
         "timeoutMs": { "env": "AI_TIMEOUT_MS", "required": false },
         "models": [
-          {
-            "id": "zai-org/GLM-5.3-Flash",
-            "image_support": true
-          }
-        ]
+  {
+    "id": "zai-org/GLM-5.3-Flash",
+    "image_support": true
+  },
+  {
+    "id": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "image_support": true
+  }
+]
       }
     ]
   },
