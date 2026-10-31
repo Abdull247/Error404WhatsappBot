@@ -1,5 +1,6 @@
 import { getPersistenceConfig, getPersistenceRuntime, persistenceSandbox } from '../config/persistence.js';
 import { createChatCompletion } from '../ai/client.js';
+import { extractText, getToolCalls } from '../ai/tool-calls.js';
 import { executeToolCall } from '../tools/executor.js';
 import { addLog } from '../db/repositories/persistence/logs.js';
 import { addStep } from '../db/repositories/persistence/steps.js';
@@ -12,22 +13,6 @@ import { loadJobFiles } from './files.js';
 import { clip } from './format.js';
 import { logger } from '../utils/logger.js';
 import { getCurrentSocket } from '../whatsapp/socket.js';
-
-function extractText(message) {
-  if (!message) return '';
-  if (typeof message.content === 'string') return message.content.trim();
-  if (Array.isArray(message.content)) {
-    return message.content
-      .map((part) => (typeof part === 'string' ? part : part?.text || ''))
-      .join('')
-      .trim();
-  }
-  return '';
-}
-
-function getToolCalls(message) {
-  return Array.isArray(message?.tool_calls) && message.tool_calls.length ? message.tool_calls : [];
-}
 
 function parseArgs(raw) {
   if (!raw) return {};

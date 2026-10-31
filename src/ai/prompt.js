@@ -24,7 +24,9 @@ When the user asks you to create, draw, generate, design, or imagine any image (
 
 When the user wants to keep a file permanently, upload one to their storage, or fetch/list/delete stored files, use the file_storage tool. Files are scoped to this user or group; only that chat can retrieve them. Use upload (content, base64, or path), get, list, or delete. Generated files (write_file, sandbox, generate_image) can be stored with upload by path. After saving, tell the user it is stored and share the URL when they asked.
 
-When the user asks for a long-running job (clone a repo, refactor, run tests, multi-step research, installs, desktop work, anything that should keep going after this reply), you MUST call create_agent with a detailed task. Do not try to finish that work in this turn. After create_agent returns, reply with its reply field almost verbatim so the user gets the job id. Do not use create_agent for greetings, short answers, or a single quick command.`;
+When the user asks for a long-running job (clone a repo, refactor, run tests, multi-step research, installs, desktop work, anything that should keep going after this reply), you MUST call create_agent with a detailed task. Do not try to finish that work in this turn. After create_agent returns, reply with its reply field almost verbatim so the user gets the job id. Do not use create_agent for greetings, short answers, or a single quick command.
+
+Never write tool markup in your chat reply. Do not output <tool_call>, <arg_key>, <arg_value>, or fake function-call XML. Use the provided function-calling interface only.`;
 
 const SANDBOX_INSTRUCTIONS = {
   sandbox: `When the user asks you to run code, try a snippet, install packages, use a terminal, inspect files in an isolated environment, plot a chart, start a server, or otherwise execute programs, you MUST use the sandbox tool. It is a temporary E2B Linux VM reused for this chat until you kill it. Call sandbox with an action:

@@ -12,30 +12,7 @@ import { isOwnerJid } from '../whatsapp/owner.js';
 import { createChatCompletion } from './client.js';
 import { isGreeting } from './greetings.js';
 import { buildMessages } from './prompt.js';
-
-function extractText(message) {
-  if (!message) return '';
-
-  if (typeof message.content === 'string') {
-    return message.content.trim();
-  }
-
-  if (Array.isArray(message.content)) {
-    return message.content
-      .map((part) => (typeof part === 'string' ? part : part?.text || ''))
-      .join('')
-      .trim();
-  }
-
-  return '';
-}
-
-function getToolCalls(message) {
-  if (Array.isArray(message?.tool_calls) && message.tool_calls.length) {
-    return message.tool_calls;
-  }
-  return [];
-}
+import { extractText, getToolCalls, stripToolCallText } from './tool-calls.js';
 
 function defaultRecap(artifacts) {
   const names = artifacts.map((file) => file.filename).filter(Boolean);
@@ -204,7 +181,7 @@ export async function generateReply({
     }
   }
 
-  let reply = extractText(lastMessage);
+  let reply = stripToolCallText(extractText(lastMessage));
   if (!reply && artifacts.length) {
     reply = defaultRecap(artifacts);
   }
