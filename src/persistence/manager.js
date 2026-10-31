@@ -4,13 +4,14 @@ import { isGroupJid } from '../whatsapp/filters.js';
 import { HOURGLASS, reactToMessage } from '../whatsapp/react.js';
 import { captureMessageAttachments } from './files.js';
 import { createJobId } from './ids.js';
-import { queuedReply, formatJobCard, formatJobList, formatLogs } from './format.js';
+import { queuedReply, busyReply, jobPublicInfo, formatJobCard, formatJobList, formatLogs, isActiveStatus, clip, statusLabel } from './format.js';
 import { parseJobId } from './ids.js';
 import {
   insertJob,
   getJobForChat,
   listJobsForChat,
   countActiveJobs,
+  listRunningJobs,
   requestCancel,
 } from '../db/repositories/persistence/jobs.js';
 import { latestSteps } from '../db/repositories/persistence/steps.js';
@@ -48,6 +49,23 @@ export async function createPersistenceJob({
   if (!jid) return { ok: false, error: 'no WhatsApp chat context' };
 
   const config = getPersistenceConfig();
+  const running = await listRunningJobs({ limit: Math.max(config.maxConcurrent, 8) });
+  if (running.length >= config.maxConcurrent) {
+    const instances = running.map((job) => jobPublicInfo(job, { prefix: prefix(), command: commandName() }));
+    return {
+      ok: false,
+      busy: true,
+      error: running.length === 1
+        ? 'A persistent agent is already running.'
+        : `${running.length} persistent agents are already running (cap ${config.maxConcurrent}).`,
+      cap: config.maxConcurrent,
+      runningCount: running.length,
+      instances,
+      instance: instances[0] || null,
+      reply: busyReply(running, { prefix: prefix(), command: commandName(), cap: config.maxConcurrent }),
+    };
+  }
+
   const active = await countActiveJobs();
   if (active >= config.maxConcurrent * 4) {
     return { ok: false, error: `Too many persistent agents are already queued (${active}). Try again later.` };
@@ -89,6 +107,16 @@ export async function createPersistenceJob({
   }
 
   await addLog({ jobId: id, message: 'job queued', data: { task: cleanTask } });
+  logger.info(
+    {
+      jobId: job.id,
+      jid,
+      status: job.status,
+      maxRuntimeMinutes: runtimeMinutes,
+      task: clip(cleanTask, 240),
+    },
+    'create_agent queued persistence job',
+  );
   wakePersistenceWorker();
 
   return {
@@ -128,12 +156,37 @@ export async function inspectResult(jid, rawId) {
   const id = parseJobId(rawId);
   const job = await getJobForChat(id, jid);
   if (!job) return `No persistent agent \`${id}\` in this chat.`;
+  const prefixValue = prefix();
+  const command = commandName();
+  logger.info({ jid, jobId: id, status: job.status, hasResult: Boolean(job.result), hasError: Boolean(job.error) }, 'agent result lookup');
+  if (isActiveStatus(job.status)) {
+    const [steps, files] = await Promise.all([
+      latestSteps(id, { limit: 6 }),
+      listJobFiles(id),
+    ]);
+    return [
+      `Agent \`${id}\` is still ${statusLabel(job.status).toLowerCase()}. No final result yet.`,
+      '',
+      formatJobCard(job, { prefix: prefixValue, command, steps, files }),
+    ].join('\n');
+  }
+  if (job.status === 'failed' || job.status === 'timed_out' || job.status === 'cancelled' || job.status === 'interrupted') {
+    return [
+      `*Result for* \`${id}\``,
+      `Status: ${statusLabel(job.status)}`,
+      job.progress ? `Progress: ${clip(job.progress, 400)}` : '',
+      '',
+      job.result || job.error || 'No written result. The job did not finish successfully.',
+      '',
+      `Logs: ${prefixValue}${command} logs ${id}`,
+    ].filter(Boolean).join('\n');
+  }
   if (!job.result && !job.error) {
-    return formatJobCard(job, { prefix: prefix(), command: commandName() });
+    return formatJobCard(job, { prefix: prefixValue, command });
   }
   return [
     `*Result for* \`${id}\``,
-    `Status: ${job.status}`,
+    `Status: ${statusLabel(job.status)}`,
     '',
     job.result || job.error,
   ].join('\n');
@@ -154,4 +207,9 @@ export async function cancelChatJob(jid, rawId) {
   }
   wakePersistenceWorker();
   return `Cancellation requested for \`${id}\`. It will stop after the current step.`;
+}
+
+export async function listActiveInstances() {
+  const jobs = await listRunningJobs({ limit: 20 });
+  return jobs.map((job) => jobPublicInfo(job, { prefix: prefix(), command: commandName() }));
 }

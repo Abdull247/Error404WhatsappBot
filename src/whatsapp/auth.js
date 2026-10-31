@@ -129,13 +129,11 @@ export async function createWhatsAppSocket({ onMessage }) {
     }
   });
 
-  sock.ev.on('messages.upsert', async ({ messages }) => {
+  sock.ev.on('messages.upsert', ({ messages }) => {
     for (const message of messages || []) {
-      try {
-        await onMessage(sock, message);
-      } catch (error) {
+      Promise.resolve(onMessage(sock, message)).catch((error) => {
         logger.error({ err: error }, 'failed to handle incoming message');
-      }
+      });
     }
   });
 

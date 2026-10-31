@@ -20,12 +20,14 @@ export function getPersistenceConfig() {
     command: String(raw.command || 'agent').trim().toLowerCase() || 'agent',
     maxRounds: intOr(raw.maxRounds, 40),
     maxRuntimeMinutes: env.PERSISTENCE_MAX_RUNTIME_MINUTES || intOr(raw.maxRuntimeMinutes, 90),
-    maxConcurrent: env.PERSISTENCE_MAX_CONCURRENT || intOr(raw.maxConcurrent, 2),
+    maxConcurrent: env.PERSISTENCE_MAX_CONCURRENT || intOr(raw.maxConcurrent, 1),
     maxAttempts: intOr(raw.maxAttempts, 3),
     pollIntervalMs: env.PERSISTENCE_POLL_MS || intOr(raw.pollIntervalMs, 4000),
     leaseSeconds: env.PERSISTENCE_LEASE_SECONDS || intOr(raw.leaseSeconds, 90),
     heartbeatMs: intOr(raw.heartbeatMs, 20000),
-    workspaceRoot: String(raw.workspaceRoot || '/data/jen404/agents').trim() || '/data/jen404/agents',
+    workspaceRoot: env.PERSISTENCE_WORKSPACE_ROOT
+      || String(raw.workspaceRoot || '/data/home/jen404/agents').trim()
+      || '/data/home/jen404/agents',
     idleKeepaliveMinutes: intOr(raw.idleKeepaliveMinutes, 25),
     notifyOnComplete: raw.notifyOnComplete !== false,
     timeoutMs: intOr(raw.timeoutMs, env.AI_TIMEOUT_MS || 60000),

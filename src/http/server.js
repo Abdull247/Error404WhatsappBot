@@ -4,6 +4,7 @@ import { appConfig } from '../config/load-config.js';
 import { persistenceFeatureEnabled } from '../config/persistence.js';
 import { persistenceWorkerStatus } from '../persistence/worker.js';
 import { logger } from '../utils/logger.js';
+import { requestQueueSnapshot } from '../whatsapp/request-queue.js';
 import { getConnectionStatus, getCurrentSocket } from '../whatsapp/socket.js';
 
 function json(res, status, body) {
@@ -27,6 +28,7 @@ function healthPayload() {
       enabled: persistenceFeatureEnabled(),
       ...persistenceWorkerStatus(),
     },
+    requestQueue: requestQueueSnapshot(),
   };
 }
 

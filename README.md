@@ -148,7 +148,7 @@ Only one sandbox backend is exposed at a time. Set `"default"` in `sandboxes.jso
 
 `file_storage` persists files to Cloudflare R2 and remembers them in the database, scoped to the requesting user or group. Set `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, and `R2_ENDPOINT` (plus optional `R2_PUBLIC_URL`). Actions: `upload` (content, base64, or path), `get`, `list`, `delete`. Incoming user files are also stored automatically for the chat.
 
-`create_agent` is only registered when `persistenceAgent.enabled` is true and at least one sandbox in `sandboxes.json` has `supports_persistence_agent: true` (typos `surports_*` also work). The main bot reacts with an hourglass, queues the job, and replies with a job id. The in-process worker then runs a separate model loop against the persistent sandbox.
+`create_agent` is only registered when `persistenceAgent.enabled` is true and at least one sandbox in `sandboxes.json` has `supports_persistence_agent: true` (typos `surports_*` also work). The main bot reacts with an hourglass, queues the job, and replies with a job id plus `.agent` / `.agent logs` commands. If a persistent agent is already running (see `persistenceAgent.maxConcurrent`), the tool returns that instance's id, status, task, and check commands instead of starting another. Long tasks that burn more than `tools.handoffAfterRounds` tool rounds on the main bot are handed off automatically.
 
 `screenshot` captures a website with the Screenshotlayer API and sends the image on WhatsApp. Set `SCREENSHOTLAYER_API_KEY` in `.env`. Ask for a screenshot of a URL, optionally full page or a mobile viewport. Capture reacts with an hourglass, then a check mark.
 
@@ -220,16 +220,20 @@ The `create_agent` tool is exposed only when:
     "command": "agent",
     "maxRounds": 40,
     "maxRuntimeMinutes": 90,
-    "maxConcurrent": 2,
-    "workspaceRoot": "/data/jen404/agents",
+    "maxConcurrent": 1,
+    "workspaceRoot": "/data/home/jen404/agents",
     "allow": ["linux_machine", "sandbox", "web_search", "write_file", "file_storage", "screenshot"]
   }
 }
 ```
 
+`maxConcurrent` is a hard cap on *running* persistent agents (default `1`). When the bot calls `create_agent` while that cap is full, it does not start a second instance. It replies with the running job id, status, task, progress, and the same check/logs commands the user would get from a new job.
+
 `defaultModel` uses the same provider catalog as the main bot. If that model has `image_support: true`, the persistence agent can inspect attached images through `read_attachment`.
 
-WhatsApp files sent with the starting message are stored on the job, copied into the sandbox workspace, and readable via `read_attachment`. Durable job state is written under `/data/jen404/agents/<job-id>/` so a 30-minute sandbox idle pause does not wipe notes, checkpoints, or artifacts.
+Incoming WhatsApp messages are queued per chat and fairly across chats (`bot.queue` in `config.json`). Up to `maxConcurrentChats` conversations generate replies at once; extra people are told they are waiting instead of colliding. Each chat still runs one request at a time so history stays in order.
+
+WhatsApp files sent with the starting message are stored on the job, copied into the sandbox workspace, and readable via `read_attachment`. Durable job state is written under `/data/home/jen404/agents/<job-id>/` (writable InstaBox home). If that path is not writable, the worker falls back to `/data/home/agents` or `/tmp/jen404/agents`.
 
 Job tables (separate from chat memory):
 
@@ -240,7 +244,7 @@ Job tables (separate from chat memory):
 - `persistence_job_files`
 - `persistence_job_notifications`
 
-Agent instructions live in `persistence-instructions.json` and in `src/persistence/`. Optional env overrides: `PERSISTENCE_AGENT_ENABLED`, `PERSISTENCE_MAX_CONCURRENT`, `PERSISTENCE_MAX_RUNTIME_MINUTES`, `PERSISTENCE_POLL_MS`, `PERSISTENCE_LEASE_SECONDS`, `PERSISTENCE_WORKER_ID`.
+Agent instructions live in `persistence-instructions.json` and in `src/persistence/`. Optional env overrides: `PERSISTENCE_AGENT_ENABLED`, `PERSISTENCE_MAX_CONCURRENT`, `PERSISTENCE_MAX_RUNTIME_MINUTES`, `PERSISTENCE_POLL_MS`, `PERSISTENCE_LEASE_SECONDS`, `PERSISTENCE_WORKER_ID`, `PERSISTENCE_WORKSPACE_ROOT`.
 
 ## Scripts
 

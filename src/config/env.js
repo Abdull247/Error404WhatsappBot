@@ -90,6 +90,7 @@ export const env = {
   PERSISTENCE_POLL_MS: optionalInt('PERSISTENCE_POLL_MS', 0),
   PERSISTENCE_LEASE_SECONDS: optionalInt('PERSISTENCE_LEASE_SECONDS', 0),
   PERSISTENCE_WORKER_ID: optional('PERSISTENCE_WORKER_ID', ''),
+  PERSISTENCE_WORKSPACE_ROOT: optional('PERSISTENCE_WORKSPACE_ROOT', ''),
   LANGSEARCH_API_KEY: optional('LANGSEARCH_API_KEY', ''),
   LANGSEARCH_BASE_URL: optional('LANGSEARCH_BASE_URL', 'https://api.langsearch.com/v1/web-search').replace(/\/+$/, ''),
   DEFAULT_TIMEZONE: optional('DEFAULT_TIMEZONE', 'UTC'),

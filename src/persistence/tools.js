@@ -213,11 +213,22 @@ async function handleWriteWorkspace(args, ctx) {
   if (!relative) return { ok: false, error: 'path is required' };
   if (relative.includes('..')) return { ok: false, error: 'path cannot contain ..' };
   const paths = jobPaths(ctx.job.id);
-  const target = relative.startsWith(paths.root)
+  const target = relative.startsWith(paths.root) || relative.startsWith('/data/home/')
     ? relative
     : `${paths.workspace}/${relative.replace(/^\/+/, '')}`;
   if (!ctx.sandbox) return { ok: false, error: 'sandbox is not available' };
-  await writeSandboxFile(ctx.sandbox, target, args.content ?? '');
+  try {
+    await writeSandboxFile(ctx.sandbox, target, args.content ?? '');
+  } catch (error) {
+    const message = String(error?.message || error);
+    await addLog({ jobId: ctx.job.id, level: 'error', message: `write failed: ${target}`, data: { error: message } });
+    return {
+      ok: false,
+      error: message,
+      path: target,
+      hint: 'Write under /data/home or the job workspace. /data/jen404 is not writable.',
+    };
+  }
   await addLog({ jobId: ctx.job.id, message: `wrote ${target}` });
   return { ok: true, path: target, bytes: Buffer.byteLength(String(args.content ?? ''), 'utf8') };
 }

@@ -238,7 +238,7 @@ async function handleRunCode(jid, args, options) {
   const language = normalizeLanguage(args.language);
   const { filename, runner } = languageCommand(language, code);
   return withMachine(jid, args, async (sandbox) => {
-    logger.info({ jid, language, bytes: Buffer.byteLength(code) }, 'linux_machine run_code');
+    logger.info({ jid, language, machineId: sandbox.sandboxId, bytes: Buffer.byteLength(code) }, 'linux_machine run_code');
     await sandbox.files.write(filename, code);
     const result = await sandbox.commands.exec(runner, {
       cwd: machinePath(args.cwd, options.home),
@@ -257,7 +257,7 @@ async function handleRunCommand(jid, args, options) {
   if (!command) return { ok: false, error: 'command is required for run_command' };
   const background = Boolean(args.background);
   return withMachine(jid, args, async (sandbox) => {
-    logger.info({ jid, command, background }, 'linux_machine run_command');
+    logger.info({ jid, command, background, machineId: sandbox.sandboxId }, 'linux_machine run_command');
     const opts = {
       cwd: machinePath(args.cwd, options.home),
       timeoutMs: commandTimeout(args, options),

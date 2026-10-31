@@ -4,7 +4,7 @@
     "type": "function",
     "function": {
       "name": "create_agent",
-      "description": "Start a persistent background agent for a long-running task (multi-step coding, repo work, installs, tests, research, desktop flows). Returns immediately with a job id. Use this instead of doing the long work yourself. Do not use it for short replies, greetings, or single quick commands.",
+      "description": "Start a persistent background agent for a long-running task (multi-step coding, repo work, installs, tests, research, desktop flows, anything that needs more than about 3 tool rounds). Returns immediately with a job id and check/logs commands. Use this instead of doing the long work yourself. If it returns busy=true, one agent is already running: reply with the reply field verbatim (it includes the running instance id/status/task and how to check logs) and do not start the work yourself. Do not use it for short replies, greetings, or a single quick command.",
       "parameters": {
         "type": "object",
         "properties": {

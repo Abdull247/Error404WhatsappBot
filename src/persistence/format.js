@@ -40,6 +40,10 @@ export function commandHint(prefix, command, jobId) {
   return `${prefix}${command} ${jobId}`;
 }
 
+export function isActiveStatus(status) {
+  return ['queued', 'starting', 'running', 'waiting'].includes(status);
+}
+
 export function formatJobCard(job, { prefix = '.', command = 'agent', steps = [], files = [] } = {}) {
   const id = job.id;
   const lines = [
@@ -95,6 +99,51 @@ export function formatLogs(logs) {
       return `[${when} ${item.level}] ${clip(item.message, 300)}`;
     })
     .join('\n');
+}
+
+export function jobPublicInfo(job, { prefix = '.', command = 'agent' } = {}) {
+  if (!job) return null;
+  const id = job.id;
+  return {
+    id,
+    status: job.status,
+    statusLabel: statusLabel(job.status),
+    task: clip(job.task, 280),
+    progress: job.progress ? clip(job.progress, 400) : null,
+    pushName: job.push_name || null,
+    chatJid: job.chat_jid || null,
+    startedAt: job.started_at || null,
+    runtimeSeconds: jobRuntimeSeconds(job),
+    runtime: formatDuration(jobRuntimeSeconds(job)),
+    check: commandHint(prefix, command, id),
+    logs: `${prefix}${command} logs ${id}`,
+    result: `${prefix}${command} result ${id}`,
+    cancel: `${prefix}${command} cancel ${id}`,
+  };
+}
+
+export function busyReply(jobs, { prefix = '.', command = 'agent', cap = 1 } = {}) {
+  const running = (Array.isArray(jobs) ? jobs : jobs ? [jobs] : []).filter(Boolean);
+  const lines = [
+    running.length <= 1
+      ? 'A persistent agent is already running, so I cannot start another one right now.'
+      : `${running.length} persistent agents are already running (cap ${cap}), so I cannot start another one right now.`,
+    '',
+  ];
+  for (const job of running) {
+    lines.push(`ID: \`${job.id}\``);
+    lines.push(`Status: ${statusLabel(job.status)}`);
+    lines.push(`Task: ${clip(job.task, 280)}`);
+    if (job.progress) lines.push(`Progress: ${clip(job.progress, 400)}`);
+    if (job.push_name) lines.push(`Started by: ${job.push_name}`);
+    if (job.started_at) lines.push(`Runtime: ${formatDuration(jobRuntimeSeconds(job))}`);
+    lines.push(`Check: ${commandHint(prefix, command, job.id)}`);
+    lines.push(`Logs: ${prefix}${command} logs ${job.id}`);
+    lines.push('');
+  }
+  lines.push('I will be free to start a new long task when the current agent finishes.');
+  lines.push(`List agents: ${prefix}${command}`);
+  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
 export function queuedReply(job, { prefix = '.', command = 'agent' } = {}) {

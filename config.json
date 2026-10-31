@@ -38,7 +38,13 @@
     "ownerNumbers": [],
     "logGroupMessages": true,
     "commandPrefix": ".",
-    "defaultPersonality": "jbtoai"
+    "defaultPersonality": "jbtoai",
+    "queue": {
+      "maxConcurrentChats": 4,
+      "maxPerChat": 8,
+      "maxGlobal": 48,
+      "notifyQueued": true
+    }
   },
   "memory": {
     "enabled": true,
@@ -48,7 +54,8 @@
   "tools": {
     "enabled": true,
     "allow": ["write_file", "web_search", "get_datetime", "sandbox", "linux_machine", "list_chats", "summarize_chat", "react", "screenshot", "send_sticker", "generate_image", "file_storage", "create_agent"],
-    "maxRounds": 10
+    "maxRounds": 10,
+    "handoffAfterRounds": 3
   },
   "persistenceAgent": {
     "enabled": true,
@@ -59,12 +66,12 @@
     "command": "agent",
     "maxRounds": 40,
     "maxRuntimeMinutes": 90,
-    "maxConcurrent": 2,
+    "maxConcurrent": 1,
     "maxAttempts": 3,
     "pollIntervalMs": 4000,
     "leaseSeconds": 90,
     "heartbeatMs": 20000,
-    "workspaceRoot": "/data/jen404/agents",
+    "workspaceRoot": "/data/home/jen404/agents",
     "idleKeepaliveMinutes": 25,
     "notifyOnComplete": true,
     "timeoutMs": 120000,

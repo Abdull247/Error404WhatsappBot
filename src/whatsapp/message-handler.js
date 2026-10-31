@@ -18,9 +18,12 @@ import { logIncomingMessage } from './log-message.js';
 import { hasIncomingAttachment, storeIncomingFile } from './attachments.js';
 import { markBotReply, wasRecentBotReply } from './outbound.js';
 import { pickGroupReaction, reactToMessage } from './react.js';
+import { enqueueChatWork } from './request-queue.js';
 import { sendArtifacts } from './send.js';
 
 const inflight = new Set();
+const queuedNoticeAt = new Map();
+const QUEUE_NOTICE_COOLDOWN_MS = 20_000;
 
 async function showTyping(sock, jid) {
   if (!appConfig.bot.typingIndicator) return;
@@ -38,6 +41,158 @@ async function stopTyping(sock, jid) {
     await sock.sendPresenceUpdate('paused', jid);
   } catch (error) {
     logger.warn({ err: error, jid }, 'failed to clear typing indicator');
+  }
+}
+
+function dropReply(reason) {
+  if (reason === 'chat_full') {
+    return 'You already have several messages waiting. I will get through those first, then you can send more.';
+  }
+  if (reason === 'global_full') {
+    return 'A lot of people are messaging me at once. Hold on a bit and send that again.';
+  }
+  return 'I could not take that request right now. Try again in a moment.';
+}
+
+async function maybeNotifyQueued(sock, message, jid, snapshot) {
+  if (!snapshot?.notify) return;
+  const last = queuedNoticeAt.get(jid) || 0;
+  if (Date.now() - last < QUEUE_NOTICE_COOLDOWN_MS) return;
+  queuedNoticeAt.set(jid, Date.now());
+  if (queuedNoticeAt.size > 200) {
+    const cutoff = Date.now() - QUEUE_NOTICE_COOLDOWN_MS * 3;
+    for (const [key, at] of queuedNoticeAt) {
+      if (at < cutoff) queuedNoticeAt.delete(key);
+    }
+  }
+  const ahead = snapshot.chatsAhead || snapshot.activeChats || 1;
+  const text = snapshot.waitingOnOthers
+    ? `Got it. I am finishing ${ahead} other chat${ahead === 1 ? '' : 's'} first, then I will answer you.`
+    : 'Got it. I am finishing your previous message first, then I will take this one.';
+  try {
+    await sock.sendMessage(jid, { text }, { quoted: message });
+  } catch (error) {
+    logger.warn({ err: error, jid }, 'failed to send queue notice');
+  }
+}
+
+async function processAddressedMessage(sock, message, ctx) {
+  const {
+    jid,
+    text,
+    pushName,
+    group,
+    fromMe,
+    mentioned,
+    replyToBot,
+    trigger,
+    hasImage,
+  } = ctx;
+
+  if (!fromMe && hasIncomingAttachment(message)) {
+    storeIncomingFile(sock, message, jid).catch((error) => {
+      logger.warn({ err: error, jid }, 'failed to store incoming file in R2');
+    });
+  }
+
+  const groupDetails = group ? await loadGroupDetails(sock, jid) : null;
+  const environment = buildChatEnvironment({
+    message,
+    jid,
+    pushName,
+    group,
+    mentioned,
+    replyToBot,
+    trigger,
+    groupDetails,
+  });
+  const promptText = group
+    ? (stripBotMention(text, botNames(sock), botJids(sock)) || text)
+    : text;
+
+  logger.info(
+    { jid, pushName, group, mentioned, replyToBot, trigger, text },
+    'incoming WhatsApp message',
+  );
+
+  const prefix = appConfig.bot.commandPrefix || '.';
+  let existingReaction = '';
+  if (group && appConfig.bot.reactInGroups !== false && !promptText.startsWith(prefix)) {
+    const quickReaction = pickGroupReaction(promptText);
+    if (quickReaction && await reactToMessage(sock, message, quickReaction)) {
+      existingReaction = quickReaction;
+    }
+  }
+
+  await showTyping(sock, jid);
+
+  if (appConfig.bot.markMessagesRead) {
+    sock.readMessages([message.key]).catch((error) => {
+      logger.warn({ err: error, jid }, 'failed to mark message as read');
+    });
+  }
+
+  if (!group) {
+    rememberUser(jid, pushName).catch((error) => {
+      logger.warn({ err: error, jid }, 'failed to persist user, continuing without memory write');
+    });
+  }
+
+  try {
+    const commandReply = promptText && promptText.startsWith(prefix)
+      ? await tryHandleCommand({
+          text: promptText,
+          jid,
+          pushName,
+          sock,
+          message,
+          environment,
+        })
+      : null;
+    let image = null;
+    const vision = getAiRuntime().imageSupport;
+    if (commandReply == null && hasImage && vision) {
+      try {
+        image = await downloadImageAttachment(sock, message);
+      } catch (error) {
+        logger.warn({ err: error, jid }, 'failed to download attached image');
+      }
+    }
+    const replyTextInput = promptText
+      || (image ? '' : (hasImage ? 'The user sent an image.' : (hasIncomingAttachment(message) ? 'The user sent a file.' : '')));
+    const reply = commandReply == null
+      ? await generateReply({
+          jid,
+          text: replyTextInput,
+          pushName,
+          sock,
+          message,
+          environment,
+          existingReaction,
+          image,
+        })
+      : { text: commandReply, artifacts: [] };
+    const artifacts = reply.artifacts || [];
+    const replyText = String((typeof reply === 'string' ? reply : reply.text) || '').trim()
+      || (artifacts.length ? "I've finished." : 'I could not finish that reply. Send it again and I will try a shorter pass.');
+
+    if (artifacts.length) {
+      await sendArtifacts(sock, jid, artifacts, message);
+    }
+
+    markBotReply(jid);
+    await sock.sendMessage(jid, { text: replyText }, { quoted: message });
+    logger.info(
+      {
+        jid,
+        files: artifacts.length,
+        group,
+        reply: replyText.slice(0, 400),
+      },
+      'sent WhatsApp reply',
+    );
+  } finally {
+    await stopTyping(sock, jid);
   }
 }
 
@@ -103,111 +258,40 @@ export async function handleIncomingMessage(sock, message) {
 
     if (!shouldReply) return;
 
-    if (!fromMe && hasIncomingAttachment(message)) {
-      storeIncomingFile(sock, message, jid).catch((error) => {
-        logger.warn({ err: error, jid }, 'failed to store incoming file in R2');
-      });
-    }
-
-    const groupDetails = group ? await loadGroupDetails(sock, jid) : null;
-    const environment = buildChatEnvironment({
-      message,
+    const queued = await enqueueChatWork({
       jid,
-      pushName,
-      group,
-      mentioned,
-      replyToBot,
-      trigger,
-      groupDetails,
+      run: () => processAddressedMessage(sock, message, {
+        jid,
+        text,
+        pushName,
+        group,
+        fromMe,
+        mentioned,
+        replyToBot,
+        trigger,
+        hasImage,
+      }),
+      onQueued: (snapshot) => maybeNotifyQueued(sock, message, jid, snapshot),
     });
-    const promptText = group
-      ? (stripBotMention(text, botNames(sock), botJids(sock)) || text)
-      : text;
 
-    logger.info(
-      { jid, pushName, group, mentioned, replyToBot, trigger, text },
-      'incoming WhatsApp message',
-    );
-
-    const prefix = appConfig.bot.commandPrefix || '.';
-    let existingReaction = '';
-    if (group && appConfig.bot.reactInGroups !== false && !promptText.startsWith(prefix)) {
-      const quickReaction = pickGroupReaction(promptText);
-      if (quickReaction && await reactToMessage(sock, message, quickReaction)) {
-        existingReaction = quickReaction;
-      }
-    }
-
-    await showTyping(sock, jid);
-
-    if (appConfig.bot.markMessagesRead) {
-      sock.readMessages([message.key]).catch((error) => {
-        logger.warn({ err: error, jid }, 'failed to mark message as read');
-      });
-    }
-
-    if (!group) {
-      rememberUser(jid, pushName).catch((error) => {
-        logger.warn({ err: error, jid }, 'failed to persist user, continuing without memory write');
-      });
-    }
-
-    const commandReply = promptText && promptText.startsWith(prefix)
-      ? await tryHandleCommand({
-          text: promptText,
-          jid,
-          pushName,
-          sock,
-          message,
-          environment,
-        })
-      : null;
-    let image = null;
-    const vision = getAiRuntime().imageSupport;
-    if (commandReply == null && hasImage && vision) {
+    if (queued?.dropped) {
+      logger.info({ jid, reason: queued.reason }, 'dropped queued WhatsApp request');
       try {
-        image = await downloadImageAttachment(sock, message);
-      } catch (error) {
-        logger.warn({ err: error, jid }, 'failed to download attached image');
+        await sock.sendMessage(jid, { text: dropReply(queued.reason) }, { quoted: message });
+      } catch (sendError) {
+        logger.error({ err: sendError, jid }, 'failed to send drop reply');
       }
     }
-    const replyTextInput = promptText
-      || (image ? '' : (hasImage ? 'The user sent an image.' : (hasFile ? 'The user sent a file.' : '')));
-    const reply = commandReply == null
-      ? await generateReply({
-          jid,
-          text: replyTextInput,
-          pushName,
-          sock,
-          message,
-          environment,
-          existingReaction,
-          image,
-        })
-      : { text: commandReply, artifacts: [] };
-    const artifacts = reply.artifacts || [];
-    const replyText = typeof reply === 'string' ? reply : reply.text;
-
-    if (artifacts.length) {
-      await sendArtifacts(sock, jid, artifacts, message);
-    }
-
-    markBotReply(jid);
-    await sock.sendMessage(jid, { text: replyText }, { quoted: message });
-    logger.info({ jid, files: artifacts.length, group }, 'sent WhatsApp reply');
   } catch (error) {
     logger.error({ err: error, jid }, 'failed to generate or send reply');
     try {
       await sock.sendMessage(jid, {
-        text: 'Sorry, I ran into a problem handling that message.',
+        text: 'Sorry, I ran into a problem handling that message. Try sending it again.',
       }, { quoted: message });
     } catch (sendError) {
       logger.error({ err: sendError, jid }, 'failed to send error reply');
     }
   } finally {
-    if (shouldReply) {
-      await stopTyping(sock, jid);
-    }
     inflight.delete(messageId);
   }
 }

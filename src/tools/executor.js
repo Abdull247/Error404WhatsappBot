@@ -26,15 +26,40 @@ export async function executeToolCall(toolCall, context = {}) {
   }
 
   const args = parseArgs(toolCall.function?.arguments);
-  logger.info({ name, args: Object.keys(args) }, 'executing tool');
+  logger.info({
+    name,
+    args: Object.keys(args),
+    action: args.action || null,
+    path: args.path || null,
+    machineId: args.machineId || args.sandboxId || null,
+    jobId: args.id || null,
+    task: typeof args.task === 'string' ? args.task.slice(0, 180) : undefined,
+  }, 'executing tool');
 
   try {
     const result = await handler(args, context);
+    const content = typeof result === 'string' ? result : JSON.stringify(result);
+    if (name === 'create_agent' || result?.id || result?.busy) {
+      logger.info({
+        name,
+        ok: result?.ok,
+        busy: result?.busy,
+        jobId: result?.id || result?.instance?.id,
+        status: result?.status,
+      }, 'tool finished');
+    } else {
+      logger.info({
+        name,
+        ok: result?.ok,
+        machineId: result?.machineId || args.machineId || args.sandboxId || null,
+        output: content.slice(0, 400),
+      }, 'tool finished');
+    }
     return {
       message: {
         role: 'tool',
         tool_call_id: toolCall.id,
-        content: typeof result === 'string' ? result : JSON.stringify(result),
+        content,
       },
       artifacts: Array.isArray(result?.files) ? result.files.filter((file) => file.ok && file.attachment) : [],
     };

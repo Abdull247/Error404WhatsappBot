@@ -18,6 +18,19 @@ export async function handler(args = {}, context = {}) {
     message: context.message,
   });
 
+  if (result.busy) {
+    return {
+      ok: false,
+      busy: true,
+      error: result.error,
+      cap: result.cap,
+      runningCount: result.runningCount,
+      instances: result.instances,
+      instance: result.instance,
+      reply: result.reply,
+      instruction: 'A persistent agent is already running. Reply with the reply field almost verbatim, including job id, status, task, and the check/logs commands. Do not start the long task yourself.',
+    };
+  }
   if (!result.ok) return result;
   return {
     ok: true,
@@ -25,6 +38,6 @@ export async function handler(args = {}, context = {}) {
     status: result.status,
     maxRuntimeMinutes: result.maxRuntimeMinutes,
     reply: result.reply,
-    instruction: 'Reply to the user with the reply field almost verbatim. Do not redo the task yourself.',
+    instruction: 'Reply to the user with the reply field almost verbatim so they get the job id and the check/logs commands. Do not redo the task yourself.',
   };
 }

@@ -58,8 +58,13 @@ export async function executePersistenceJob(job, { workerId, shouldStop } = {}) 
   try {
     sandbox = await getJobMachine(job);
     if (sandbox) {
-      await ensureJobWorkspace(job, sandbox);
-      await syncAttachmentsToWorkspace(job, sandbox);
+      try {
+        await ensureJobWorkspace(job, sandbox);
+        await syncAttachmentsToWorkspace(job, sandbox);
+      } catch (error) {
+        logger.warn({ err: error, jobId: job.id }, 'persistence workspace setup failed; continuing without it');
+        await addLog({ jobId: job.id, level: 'warn', message: `workspace setup failed: ${error.message}` });
+      }
     }
   } catch (error) {
     logger.warn({ err: error, jobId: job.id }, 'persistence sandbox setup failed');
@@ -161,7 +166,17 @@ export async function executePersistenceJob(job, { workerId, shouldStop } = {}) 
       for (const toolCall of toolCalls) {
         const name = toolCall?.function?.name;
         const args = parseArgs(toolCall.function?.arguments);
-        await addLog({ jobId: job.id, message: `tool ${name}`, data: { name, keys: Object.keys(args) } });
+        await addLog({
+          jobId: job.id,
+          message: `tool ${name}`,
+          data: {
+            name,
+            keys: Object.keys(args),
+            path: args.path || null,
+            action: args.action || null,
+            machineId: args.machineId || args.sandboxId || null,
+          },
+        });
         await addStep({
           jobId: job.id,
           kind: 'tool',
@@ -197,6 +212,15 @@ export async function executePersistenceJob(job, { workerId, shouldStop } = {}) 
 
         messages.push(result.message);
         if (result.artifacts?.length) artifacts.push(...result.artifacts);
+        logger.info(
+          {
+            jobId: job.id,
+            name,
+            machineId: args.machineId || args.sandboxId || null,
+            output: clip(result.message?.content, 500),
+          },
+          'persistence tool result',
+        );
         await addStep({
           jobId: job.id,
           kind: 'tool_result',

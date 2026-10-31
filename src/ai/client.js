@@ -54,6 +54,9 @@ export async function createChatCompletion({ messages, tools, toolChoice, temper
         body,
       );
     }
+    if (!body?.choices?.length) {
+      throw new AiClientError('AI returned no choices', 502, body);
+    }
 
     return body;
   } catch (error) {

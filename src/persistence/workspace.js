@@ -5,21 +5,33 @@ import { listJobFiles, updateJobFile } from '../db/repositories/persistence/file
 import { logger } from '../utils/logger.js';
 import { isReadableFile } from './files.js';
 
+const FALLBACK_ROOTS = [
+  '/data/home/jen404/agents',
+  '/data/home/agents',
+  '/tmp/jen404/agents',
+];
+
+let resolvedRoot = '';
+
 function quote(value) {
   return `'${String(value).replace(/'/g, `'\\''`)}'`;
 }
 
-export function jobPaths(jobId) {
-  const root = `${getPersistenceConfig().workspaceRoot.replace(/\/+$/, '')}/${jobId}`;
+function configuredRoot() {
+  return String(getPersistenceConfig().workspaceRoot || '').replace(/\/+$/, '') || '/data/home/jen404/agents';
+}
+
+export function jobPaths(jobId, root = resolvedRoot || configuredRoot()) {
+  const base = `${String(root).replace(/\/+$/, '')}/${jobId}`;
   return {
-    root,
-    workspace: `${root}/workspace`,
-    logs: `${root}/logs`,
-    artifacts: `${root}/artifacts`,
-    attachments: `${root}/attachments`,
-    memory: `${root}/memory.json`,
-    checkpoint: `${root}/checkpoint.json`,
-    heartbeat: `${root}/heartbeat.txt`,
+    root: base,
+    workspace: `${base}/workspace`,
+    logs: `${base}/logs`,
+    artifacts: `${base}/artifacts`,
+    attachments: `${base}/attachments`,
+    memory: `${base}/memory.json`,
+    checkpoint: `${base}/checkpoint.json`,
+    heartbeat: `${base}/heartbeat.txt`,
   };
 }
 
@@ -29,8 +41,42 @@ export async function getJobMachine(job) {
   return getOrCreateMachine(job.chat_jid || job.owner_jid);
 }
 
+async function canUseRoot(sandbox, root) {
+  const probe = `${String(root).replace(/\/+$/, '')}/.probe`;
+  try {
+    await sandbox.commands.exec(`mkdir -p ${quote(root)} && date -Is > ${quote(probe)} && rm -f ${quote(probe)}`, {
+      timeoutMs: 20000,
+    });
+    return true;
+  } catch (error) {
+    logger.warn({ err: error, root }, 'persistence workspace root is not writable');
+    return false;
+  }
+}
+
+export async function resolveWorkspaceRoot(sandbox) {
+  if (resolvedRoot) return resolvedRoot;
+  const candidates = [configuredRoot(), ...FALLBACK_ROOTS.filter((root) => root !== configuredRoot())];
+  if (!sandbox?.commands?.exec) {
+    resolvedRoot = candidates[0];
+    return resolvedRoot;
+  }
+  for (const root of candidates) {
+    if (await canUseRoot(sandbox, root)) {
+      resolvedRoot = root;
+      if (root !== configuredRoot()) {
+        logger.warn({ configured: configuredRoot(), using: root }, 'persistence workspace root fell back to a writable path');
+      }
+      return resolvedRoot;
+    }
+  }
+  resolvedRoot = candidates[candidates.length - 1];
+  return resolvedRoot;
+}
+
 export async function ensureJobWorkspace(job, sandbox) {
-  const paths = jobPaths(job.id);
+  const root = await resolveWorkspaceRoot(sandbox);
+  const paths = jobPaths(job.id, root);
   if (!sandbox?.commands?.exec) return paths;
   const script = [
     `mkdir -p ${quote(paths.workspace)} ${quote(paths.logs)} ${quote(paths.artifacts)} ${quote(paths.attachments)}`,
@@ -44,7 +90,15 @@ export async function writeSandboxFile(sandbox, target, content) {
   if (!sandbox?.files?.write) return false;
   const dir = String(target).replace(/\/[^/]+$/, '');
   if (dir && sandbox.commands?.exec) {
-    await sandbox.commands.exec(`mkdir -p ${quote(dir)}`, { timeoutMs: 15000 }).catch(() => null);
+    try {
+      await sandbox.commands.exec(`mkdir -p ${quote(dir)}`, { timeoutMs: 15000 });
+    } catch (error) {
+      const message = String(error?.message || error);
+      if (/Permission denied|EACCES|cannot create directory/i.test(message)) {
+        throw new Error(`Cannot write ${target}: parent directory is not writable (${message})`);
+      }
+      throw error;
+    }
   }
   await sandbox.files.write(target, content == null ? '' : String(content));
   return true;

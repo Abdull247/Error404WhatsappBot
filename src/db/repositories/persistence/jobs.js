@@ -58,6 +58,24 @@ export async function countActiveJobs() {
   return rows[0]?.count || 0;
 }
 
+export async function countRunningJobs() {
+  const rows = await sql`
+    SELECT COUNT(*)::int AS count
+    FROM persistence_jobs
+    WHERE status IN ('starting', 'running', 'waiting')
+  `;
+  return rows[0]?.count || 0;
+}
+
+export async function listRunningJobs({ limit = 20 } = {}) {
+  return sql`
+    SELECT * FROM persistence_jobs
+    WHERE status IN ('starting', 'running', 'waiting')
+    ORDER BY created_at ASC
+    LIMIT ${limit}
+  `;
+}
+
 export async function updateJob(id, patch = {}) {
   const current = await getJob(id);
   if (!current) return null;
@@ -101,9 +119,8 @@ export async function claimNextJob(workerId, leaseSeconds, maxConcurrent) {
   const active = await sql`
     SELECT COUNT(*)::int AS count
     FROM persistence_jobs
-    WHERE status IN ('starting', 'running')
-      AND worker_id = ${workerId}
-      AND lease_until > NOW()
+    WHERE status IN ('starting', 'running', 'waiting')
+      AND (lease_until IS NULL OR lease_until > NOW())
   `;
   if ((active[0]?.count || 0) >= maxConcurrent) return null;
 
