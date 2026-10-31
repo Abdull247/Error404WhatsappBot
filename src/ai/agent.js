@@ -173,6 +173,25 @@ export async function generateReply({
         if (result.artifacts?.length) {
           artifacts.push(...result.artifacts);
         }
+        if (name === 'create_agent') {
+          try {
+            const parsed = JSON.parse(result.message?.content || '{}');
+            if (parsed?.ok && parsed.reply) {
+              expressiveReaction = HOURGLASS;
+              saveTurn(jid, 'assistant', parsed.reply, {
+                model: runtime.modelId,
+                provider: runtime.providerId,
+                files: [],
+                persistenceJobId: parsed.id,
+              }).catch((error) => {
+                logger.warn({ err: error, jid }, 'failed to save assistant turn');
+              });
+              return { text: parsed.reply, artifacts, reaction: HOURGLASS };
+            }
+          } catch {
+            // keep the normal tool loop
+          }
+        }
       }
     }
   } finally {

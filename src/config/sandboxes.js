@@ -18,9 +18,22 @@ const defaults = {
       tool: 'linux_machine',
       name: 'InstaBox Linux computer',
       description: 'Persistent InstaBox Linux computer (Debian, /data disk, optional desktop). Shared and reused across turns for every user and group. Home is /data/home. Use for projects, servers, files that should last, and the desktop.',
+      supports_persistence_agent: true,
     },
   ],
 };
+
+function truthyFlag(raw, keys) {
+  for (const key of keys) {
+    if (raw?.[key] === undefined || raw?.[key] === null) continue;
+    const value = raw[key];
+    if (typeof value === 'string') {
+      return ['1', 'true', 'yes', 'on'].includes(value.trim().toLowerCase());
+    }
+    return Boolean(value);
+  }
+  return false;
+}
 
 function normalizeBox(raw, index) {
   const id = String(raw?.id || raw?.tool || `box-${index + 1}`).trim();
@@ -31,6 +44,14 @@ function normalizeBox(raw, index) {
     name: String(raw?.name || id).trim(),
     description: String(raw?.description || '').trim(),
     enabled: raw?.enabled !== false,
+    supportsPersistenceAgent: truthyFlag(raw, [
+      'supports_persistence_agent',
+      'supportsPersistenceAgent',
+      'supports_persistance_agent',
+      'surports_persistence_agent',
+      'surports_persistance_agent',
+      'surportsPersistenceAgent',
+    ]),
   };
 }
 
@@ -67,4 +88,20 @@ export function getSandboxByTool(toolName) {
 
 export function sandboxToolNames() {
   return (sandboxConfig.boxes || []).map((box) => box.tool).filter(Boolean);
+}
+
+export function getPersistenceSandboxes() {
+  return (sandboxConfig.boxes || []).filter((box) => box.supportsPersistenceAgent);
+}
+
+export function hasPersistenceSandbox() {
+  return getPersistenceSandboxes().length > 0;
+}
+
+export function getPersistenceSandbox() {
+  const supported = getPersistenceSandboxes();
+  if (!supported.length) return null;
+  const active = getDefaultSandbox();
+  if (active?.supportsPersistenceAgent) return active;
+  return supported[0];
 }

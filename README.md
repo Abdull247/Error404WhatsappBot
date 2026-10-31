@@ -10,6 +10,7 @@ cloudflare.json
 sandboxes.json
 stickers/
 custom-instructions.json
+persistence-instructions.json
 .env.example
 migrations/
 src/
@@ -18,6 +19,7 @@ src/
   config/
   db/
   memory/
+  persistence/
   tools/
   utils/
   whatsapp/
@@ -36,6 +38,7 @@ src/
 - `write_file` can create `.html`, `.css`, `.js`, `.txt`, `.json`, and `.md` files, send them on WhatsApp, then send a short recap.
 - `sandbox` runs code and commands in a temporary E2B Linux VM. One sandbox is reused per WhatsApp chat until it is killed or times out.
 - `linux_machine` is a persistent InstaBox Linux computer (Debian, `/data` disk, optional desktop). It is available in DMs and groups. `sandboxes.json` picks which one is active.
+- `create_agent` starts a persistent background agent when at least one sandbox has `supports_persistence_agent: true`. Jobs, steps, logs, and memories live in Neon. The worker runs in-process so a Render free web service plus `/health` cron still works.
 
 ## Setup
 
@@ -145,6 +148,8 @@ Only one sandbox backend is exposed at a time. Set `"default"` in `sandboxes.jso
 
 `file_storage` persists files to Cloudflare R2 and remembers them in the database, scoped to the requesting user or group. Set `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, and `R2_ENDPOINT` (plus optional `R2_PUBLIC_URL`). Actions: `upload` (content, base64, or path), `get`, `list`, `delete`. Incoming user files are also stored automatically for the chat.
 
+`create_agent` is only registered when `persistenceAgent.enabled` is true and at least one sandbox in `sandboxes.json` has `supports_persistence_agent: true` (typos `surports_*` also work). The main bot reacts with an hourglass, queues the job, and replies with a job id. The in-process worker then runs a separate model loop against the persistent sandbox.
+
 `screenshot` captures a website with the Screenshotlayer API and sends the image on WhatsApp. Set `SCREENSHOTLAYER_API_KEY` in `.env`. Ask for a screenshot of a URL, optionally full page or a mobile viewport. Capture reacts with an hourglass, then a check mark.
 
 ## Custom instructions
@@ -185,9 +190,57 @@ Messages that start with `.` are handled before the AI.
 .menu
 .personalities
 .personalities - Helpfulness
+.agent
+.agent <id>
+.agent logs <id>
+.agent result <id>
+.agent cancel <id>
 ```
 
 `.menu` lists commands. `.personalities` lists the JSON configs in `personalities/`. `.personalities - Helpfulness` switches this chat to that personality. The choice is stored per user/chat.
+
+`.agent` manages persistent background jobs for this chat. The command name is `persistenceAgent.command` in `config.json` (default `agent`). Job ids look like `jen-<timestamp>-<token>`. When a job finishes, the bot sends a follow-up WhatsApp message.
+
+## Persistent background agent
+
+Long tasks are queued in Neon and run by an in-process worker in the same `npm start` process. That matches a Render free web service: keep hitting `/health` so the process stays awake, and unfinished jobs resume from checkpoints after a restart.
+
+The `create_agent` tool is exposed only when:
+
+1. `persistenceAgent.enabled` is true in `config.json` (or `PERSISTENCE_AGENT_ENABLED` is not `false`)
+2. At least one sandbox in `sandboxes.json` has `supports_persistence_agent: true` (also accepts `supportsPersistenceAgent` and the typo `surports_*`)
+
+`linux_machine` ships with that flag on. E2B `sandbox` does not.
+
+```json
+{
+  "persistenceAgent": {
+    "enabled": true,
+    "defaultModel": "zai-org/GLM-5.3-Flash",
+    "command": "agent",
+    "maxRounds": 40,
+    "maxRuntimeMinutes": 90,
+    "maxConcurrent": 2,
+    "workspaceRoot": "/data/jen404/agents",
+    "allow": ["linux_machine", "sandbox", "web_search", "write_file", "file_storage", "screenshot"]
+  }
+}
+```
+
+`defaultModel` uses the same provider catalog as the main bot. If that model has `image_support: true`, the persistence agent can inspect attached images through `read_attachment`.
+
+WhatsApp files sent with the starting message are stored on the job, copied into the sandbox workspace, and readable via `read_attachment`. Durable job state is written under `/data/jen404/agents/<job-id>/` so a 30-minute sandbox idle pause does not wipe notes, checkpoints, or artifacts.
+
+Job tables (separate from chat memory):
+
+- `persistence_jobs`
+- `persistence_job_steps`
+- `persistence_job_logs`
+- `persistence_job_memories`
+- `persistence_job_files`
+- `persistence_job_notifications`
+
+Agent instructions live in `persistence-instructions.json` and in `src/persistence/`. Optional env overrides: `PERSISTENCE_AGENT_ENABLED`, `PERSISTENCE_MAX_CONCURRENT`, `PERSISTENCE_MAX_RUNTIME_MINUTES`, `PERSISTENCE_POLL_MS`, `PERSISTENCE_LEASE_SECONDS`, `PERSISTENCE_WORKER_ID`.
 
 ## Scripts
 

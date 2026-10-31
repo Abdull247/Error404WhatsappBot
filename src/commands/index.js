@@ -1,6 +1,8 @@
+import { getPersistenceConfig, persistenceFeatureEnabled } from '../config/persistence.js';
 import { logger } from '../utils/logger.js';
 import { handleMenu } from './menu.js';
 import { parseCommand } from './parse.js';
+import { handlePersistence } from './persistence.js';
 import { handlePersonalities } from './personalities.js';
 import { getCommand, listCommands, registerCommand } from './registry.js';
 
@@ -22,6 +24,16 @@ function loadCommands() {
     description: 'List AI personalities, or switch this chat to one.',
     handler: handlePersonalities,
   });
+  if (persistenceFeatureEnabled()) {
+    const command = getPersistenceConfig().command;
+    registerCommand({
+      name: command,
+      aliases: ['agents', 'persist', 'persistence', 'jobs', 'check'],
+      usage: `.${command}  |  .${command} <id>  |  .${command} logs <id>  |  .${command} result <id>  |  .${command} cancel <id>`,
+      description: 'List, inspect, or cancel persistent background agents in this chat.',
+      handler: handlePersistence,
+    });
+  }
   loaded = true;
   logger.info({ commands: listCommands().map((item) => item.name) }, 'commands loaded');
 }

@@ -1,0 +1,33 @@
+{
+  "enabled": true,
+  "definition": {
+    "type": "function",
+    "function": {
+      "name": "create_agent",
+      "description": "Start a persistent background agent for a long-running task (multi-step coding, repo work, installs, tests, research, desktop flows). Returns immediately with a job id. Use this instead of doing the long work yourself. Do not use it for short replies, greetings, or single quick commands.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string",
+            "description": "Detailed task for the background agent to complete."
+          },
+          "context": {
+            "type": "string",
+            "description": "Extra requirements, paths, constraints, or conversation context."
+          },
+          "max_runtime_minutes": {
+            "type": "integer",
+            "description": "Optional runtime cap in minutes. Defaults to the configured persistenceAgent.maxRuntimeMinutes."
+          }
+        },
+        "required": ["task"]
+      }
+    }
+  },
+  "options": {
+    "slow": true,
+    "reactBusy": "⏳",
+    "reactDone": ""
+  }
+}

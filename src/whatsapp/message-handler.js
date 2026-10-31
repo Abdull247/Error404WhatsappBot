@@ -50,7 +50,8 @@ export async function handleIncomingMessage(sock, message) {
 
   const text = extractText(message);
   const hasImage = hasImageMessage(message);
-  if (!text && !hasImage) {
+  const hasFile = hasIncomingAttachment(message);
+  if (!text && !hasImage && !hasFile) {
     logger.debug({ jid }, 'ignored message with no text');
     return;
   }
@@ -171,7 +172,7 @@ export async function handleIncomingMessage(sock, message) {
       }
     }
     const replyTextInput = promptText
-      || (image ? '' : (hasImage ? 'The user sent an image.' : ''));
+      || (image ? '' : (hasImage ? 'The user sent an image.' : (hasFile ? 'The user sent a file.' : '')));
     const reply = commandReply == null
       ? await generateReply({
           jid,
