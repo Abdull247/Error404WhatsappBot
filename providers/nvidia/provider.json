@@ -2,7 +2,7 @@
   "id": "nvidia",
   "name": "NVIDIA NIM",
   "enabled": true,
-  "default": true,
+  "default": false,
   "priority": 100,
   "kind": "openai-compatible",
   "freeTier": true,

@@ -1,0 +1,17 @@
+{
+  "id": "apinex",
+  "name": "Apinex",
+  "enabled": true,
+  "default": true,
+  "priority": 99,
+  "kind": "openai-compatible",
+  "freeTier": true,
+  "baseUrl": {
+    "env": "APINEX_BASE_URL",
+    "required": false,
+    "value": "https://api.apinex.bond/v1"
+  },
+  "apiKey": { "env": "APINEX_API_KEY", "required": true },
+  "timeoutMs": { "env": "APINEX_TIMEOUT_MS", "required": false },
+  "notes": "Apinex gateway (https://api.apinex.bond/v1), default chat provider. Uses its own APINEX_BASE_URL / APINEX_API_KEY / APINEX_TIMEOUT_MS env vars. Not used by the persistent background agent."
+}
